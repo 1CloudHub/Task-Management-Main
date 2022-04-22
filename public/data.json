@@ -1,0 +1,247 @@
+{
+  "category": [
+    {
+      "name": "Loan",
+      "value": "loan",
+      "id": 1
+    },
+    {
+      "name": "Interest",
+      "value": "interest",
+      "id": 2
+    },
+    {
+      "name": "Deposit",
+      "value": "deposit",
+      "id": 3
+    },
+    {
+      "name": "Finance",
+      "value": "finance",
+      "id": 4
+    },
+    {
+      "name": "All",
+      "value": "all",
+      "id": 5
+    }
+  ],
+
+  "subCategory": {
+    "loan": [
+      {
+        "name": "Personal Loan",
+        "value": "personalLoan",
+        "id": 1
+      },
+      {
+        "name": "Home Loan",
+        "value": "homeloan",
+        "id": 2
+      }
+    ],
+    "interest": [
+      {
+        "name": "Home Interest",
+        "value": "homeInterest",
+        "id": 1
+      },
+      {
+        "name": "Person Interest",
+        "value": "personInterest",
+        "id": 2
+      },
+      {
+        "name": "Car Interest",
+        "value": "carInterest",
+        "id": 3
+      }
+    ],
+    "finance": [
+      {
+        "name": "Bike Finance",
+        "value": "bikeFinance",
+        "id": 1
+      },
+      {
+        "name": "Car Finance",
+        "value": "carFinance",
+        "id": 2
+      },
+      {
+        "name": "Truck Finance",
+        "value": "truckFinance",
+        "id": 3
+      },
+      {
+        "name": "EV Finance",
+        "value": "evFinance",
+        "id": 4
+      }
+    ],
+    "deposit": [
+      {
+        "name": "Mutual Fund",
+        "value": "mutualFund",
+        "id": 1
+      },
+      {
+        "name": "Provident Fund",
+        "value": "providentFund",
+        "id": 2
+      },
+      {
+        "name": "Employee Deposit",
+        "value": "empDeposit",
+        "id": 3
+      },
+      {
+        "name": "Fixed Deposit",
+        "value": "fixedDeposit",
+        "id": 4
+      }
+    ]
+  },
+  "subSubCategory": {
+    "personalLoan": [
+      { "name": "Loan request", "value": "loanRequest", "id": 1 },
+      { "name": "Loan repayment", "value": "loanRepayment", "id": 2 }
+    ],
+    "homeloan": [
+      { "name": "Home request", "value": "homeRequest", "id": 1 },
+      { "name": "Home repayment", "value": "homeRepayment", "id": 2 }
+    ],
+    "homeInterest": [
+      { "name": "Home Interest request", "value": "homeintRequest", "id": 1 },
+      {
+        "name": "Loan Interest repay",
+        "value": "loanintRepayment",
+        "id": 2
+      }
+    ],
+    "personInterest": [
+      { "name": "Person request", "value": "prRequest", "id": 1 },
+      { "name": "Person repayment", "value": "prRepayment", "id": 2 }
+    ],
+    "carInterest": [
+      { "name": "Car request", "value": "crRequest", "id": 1 },
+      { "name": "Car repayment", "value": "crRepayment", "id": 2 }
+    ],
+    "bikeFinance": [
+      { "name": "Bike Finance request", "value": "bkFinRequest", "id": 1 },
+      { "name": "Bike Finance repayment", "value": "bkFinRepayment", "id": 2 }
+    ],
+    "carFinance": [
+      { "name": "Car Finance request", "value": "crFinRequest", "id": 1 },
+      { "name": "Car Finance repayment", "value": "crFinRepayment", "id": 2 }
+    ],
+    "truckFinance": [
+      { "name": "Truck Finance request", "value": "truckFinRequest", "id": 1 },
+      {
+        "name": "Truck Finance repayment",
+        "value": "truckFinRepayment",
+        "id": 2
+      }
+    ],
+    "evFinance": [
+      { "name": "EV Finance request", "value": "evFinRequest", "id": 1 },
+      {
+        "name": "EV Finance repayment",
+        "value": "evFinRepayment",
+        "id": 2
+      }
+    ],
+    "mutualFund": [
+      { "name": "Mutual Fund request", "value": "muFinRequest", "id": 1 },
+      { "name": "Mutual Fund repayment", "value": "muFinRepayment", "id": 2 }
+    ],
+    "providentFund": [
+      { "name": "Provident Fund request", "value": "prFinRequest", "id": 1 },
+      { "name": "Provident Fund repayment", "value": "prFinRepayment", "id": 2 }
+    ],
+    "empDeposit": [
+      { "name": "Employee Deposit request", "value": "empFinRequest", "id": 1 },
+      {
+        "name": "Employee Deposit repayment",
+        "value": "empFinRepayment",
+        "id": 2
+      }
+    ],
+    "fixedDeposit": [
+      { "name": "Fixed Deposit request", "value": "fdFinRequest", "id": 1 },
+      {
+        "name": "Fixed Deposit repayment",
+        "value": "fdFinRepayment",
+        "id": 2
+      }
+    ]
+  },
+  "dashboardTableData": [
+    {
+      "id": 1,
+      "category": "Loan",
+      "subCatagory": "Personal",
+      "subSubCatagory": "Male",
+      "subject": "Loan Type",
+      "taskStatus": "In Progress",
+      "createdOn": "24 Jan 2021",
+      "createdBy": "Ram",
+      "assignedTo": "Paul"
+    },
+    {
+      "id": 2,
+      "category": "Home",
+      "subCatagory": "Personal",
+      "subSubCatagory": "Female",
+      "subject": "Loan Type",
+      "taskStatus": "In Progress",
+      "createdOn": "24 Jan 2021",
+      "createdBy": "Ram",
+      "assignedTo": "Paul"
+    },
+    {
+      "id": 3,
+      "category": "Money",
+      "subCatagory": "Home",
+      "subSubCatagory": "Male",
+      "subject": "Loan Type",
+      "taskStatus": "Completed",
+      "createdOn": "2 Feb 2021",
+      "createdBy": "John",
+      "assignedTo": "Richie"
+    },
+    {
+      "id": 4,
+      "category": "CAR",
+      "subCatagory": "Appliances",
+      "subSubCatagory": "Male",
+      "subject": "Car Loan Type",
+      "taskStatus": "Completed",
+      "createdOn": "2 Feb 2021",
+      "createdBy": "Suresh",
+      "assignedTo": "Oliver"
+    },
+    {
+      "id": 5,
+      "category": "Bike",
+      "subCatagory": "Appliances",
+      "subSubCatagory": "Female",
+      "subject": "Bike Loan Type",
+      "taskStatus": "Completed",
+      "createdOn": "2 mar 2021",
+      "createdBy": "Drake",
+      "assignedTo": "Oliver"
+    },
+    {
+      "id": 6,
+      "category": "Apartment",
+      "subCatagory": "Home",
+      "subSubCatagory": "Female",
+      "subject": "Home Loan ",
+      "taskStatus": "Completed",
+      "createdOn": "2 mar 2021",
+      "createdBy": "Drake",
+      "assignedTo": "Oliver"
+    }
+  ]
+}

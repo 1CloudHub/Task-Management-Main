@@ -1,0 +1,247 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+ul {
+  margin: 0;
+}
+
+a {
+  color: inherit !important;
+  text-decoration: none;
+}
+
+ul li {
+  list-style: none;
+}
+
+:root {
+  --theme-color: #fdb913;
+  --shadow-color: 0 0 0 0.25rem rgb(253 185 19 / 57%);
+  --bg-clr-white: #ffff;
+  --bg-clr-dark: #0000;
+  /* 0 0 0 0.25rem rgb(253 185 19 / 57%) */
+  --font-size-small: 0.75em;
+}
+
+.googlebutton {
+  min-height: 100vh;
+  background: var(--theme-color);
+}
+
+.bg-theme-color {
+  background: var(--theme-color);
+}
+
+.login_logo {
+  height: 4em;
+  border-radius: 5em;
+}
+.bg {
+  background: var(--theme-color);
+  min-height: 100vh;
+}
+
+.form-control {
+  border: 1px solid var(--theme-color) !important;
+  border-radius: 0 !important;
+}
+
+.form-control:focus {
+  color: #212529;
+  background-color: var(--bg-clr-white);
+  border-color: var(--theme-color) !important;
+  outline: 0;
+  box-shadow: var(--shadow-color) !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--theme-color) !important;
+  border-color: var(--theme-color) !important;
+}
+
+.form-check-input:focus {
+  border-color: var(--theme-color) !important;
+  outline: 0;
+  box-shadow: var(--shadow-color) !important;
+}
+
+.btn-clr {
+  background-color: var(--theme-color) !important;
+  color: white !important;
+}
+.btn-clr:hover {
+  background-color: var(--bg-clr-white) !important;
+  color: var(--theme-color) !important;
+  transition: all 0.3s;
+}
+
+.nav-logo {
+  height: 2.5rem;
+  width: 5rem;
+}
+
+@media (min-width: 992px) {
+  .navbar-expand-lg .navbar-nav .nav-link {
+    /* padding-right: 2rem !important; */
+    padding-left: 0.5rem;
+  }
+}
+
+.dropdown-item:focus,
+.dropdown-item:hover {
+  color: #1e2125;
+  background-color: var(--theme-color) !important;
+}
+
+a.dropdown-item {
+  color: #1e2125 !important;
+}
+
+@media (min-width: 992px) {
+  .navbar-expand-lg .navbar-nav .dropdown-menu {
+    position: absolute;
+    left: -114px !important;
+  }
+}
+
+.bg-light {
+  background-color: var(--theme-color) !important;
+}
+
+.nav-container {
+  height: 60px;
+}
+
+ul.d-flex.m-0.cursor-pointer li {
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+a#navbarScrollingDropdown {
+  color: white !important;
+}
+
+.mobile-view {
+  display: none;
+}
+
+ul.cursor-pointer.m-0.nav-ul-lg {
+  display: flex !important;
+}
+
+ul.cursor-pointer.m-0.nav-ul-lg li a {
+  color: white !important;
+}
+
+@media only screen and (max-width: 700px) {
+  .d-flex.m-0.cursor-pointer.nav-ul-lg.nav-item.dropdown {
+    display: none !important;
+  }
+  .mobile-view {
+    display: block;
+  }
+  ul.cursor-pointer.m-0.nav-ul-lg {
+    display: none !important;
+  }
+  ul.d-flex.m-0.cursor-pointer.nav-ul-mobile {
+    flex-direction: column;
+    width: 100%;
+  }
+  .nav-sub-links-sm {
+    background: #fdb913;
+    width: 100%;
+    position: absolute;
+    top: 51px;
+    left: 0px;
+  }
+  ul.d-flex.m-0.cursor-pointer.nav-ul-mobile li {
+    padding: 10px;
+    text-align: center;
+  }
+
+  .nav-items {
+    flex-direction: column;
+  }
+  ul.d-flex.m-0.cursor-pointer li {
+    color: white;
+    font-weight: 500;
+    font-size: 9px;
+  }
+}
+
+.main-container {
+  position: relative;
+  top: 3rem;
+}
+
+.dashboard-tabs li button {
+  padding: 0.75em 4em;
+}
+
+button#dashboard-nav-tab-id-tab-graph,
+button#dashboard-nav-tab-id-tab-list {
+  color: var(--theme-color) !important;
+}
+
+@media (max-width: 1700px) {
+  .react-bootstrap-table table {
+    font-size: 0.8em !important;
+  }
+}
+
+/* For extremely small screen devices (595px and below) */
+@media only screen and (max-width: 595px) {
+}
+
+/* Small screen devices (600px and above) */
+@media only screen and (min-width: 600px) {
+}
+
+/* Medium screen devices (768px and above) */
+@media only screen and (min-width: 768px) {
+}
+
+/* Big screen devices (889px and above) */
+@media only screen and (min-width: 889px) {
+}
+
+/* Extra big screen devices (1200px and above) */
+@media only screen and (min-width: 1200px) {
+}
+
+.tableColumn {
+  color: var(--theme-color);
+}
+
+.tableColumn:hover {
+  color: #1e2125;
+  text-shadow: 0 2px 3px 5px var(--theme-color);
+}
+
+.font--size {
+  font-size: var(--font-size-small);
+}
+
+.page-item.active .page-link {
+  z-index: 3;
+  color: #fff;
+  background-color: var(--theme-color);
+  border-color: var(--theme-color);
+}
+
+.btn-secondary {
+  color: #fff;
+  background-color: var(--theme-color);
+  border-color: var(--theme-color);
+}
+
+.logout-button:hover {
+  background-color: var(--theme-color);
+}
