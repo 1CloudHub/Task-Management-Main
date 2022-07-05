@@ -1,15 +1,123 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import APIService from "../Services/APIService";
 import Footer from "./Footer";
-import NavBar from "./Nav-bar";
-import { Link } from "react-router-dom";
 import MapComponent from "./MapComponent";
+import NavBar from "./Nav-bar";
 
 function Managetask({ logoutClick, userDetails }) {
-  const [selectedCategoryOption, setSelectedCategoryOption] = useState(null);
-  const categoryOptions = [{ value: "Loan", label: "Loan" }];
-  const handleCategoryOptionChange = (selectedValue) => {
-    setSelectedCategoryOption(selectedValue);
+  let { id } = useParams();
+  const [userDetail, setUserDetail] = useState([]);
+  console.log(id);
+  const apiService = new APIService();
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subCategory, setSubCategory] = useState([]);
+  const [subSubCategory, setSubSubCategory] = useState([]);
+  const [defCat, setDefCat] = useState([]);
+  const [defSubCat, setDefSubCat] = useState([]);
+  const [defSubSubCat, setDefSubSubCat] = useState([]);
+
+  const handleCategoryChange = (e) => {
+    console.log(e.target.value);
+    setDefCat(e.target.value);
+    let key = e.target.value;
+    apiService
+      .request("subCategory")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        setSubCategory(myJson[key]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
+  const handleSubCategoryChange = (e) => {
+    console.log(e.target.value);
+    let key = e.target.value;
+    setDefSubCat(e.target.value);
+    apiService
+      .request("subSubCategory")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        setSubSubCategory(myJson[key]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const handleSubSubCategoryChange = (e) => {
+    setDefSubSubCat(e.target.value);
+  };
+  let catgry = "";
+  let subCategry = "";
+  useEffect(() => {
+    apiService
+      .request("1")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log("--1---", myJson);
+        setUserDetail(myJson);
+        console.log(userDetail);
+        catgry = myJson.category;
+        console.log(catgry);
+        subCategry = myJson.subCategory;
+        setDefCat(myJson.category);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    apiService
+      .request("category")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        setCategoryOptions(myJson);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    apiService
+      .request("subCategory")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        console.log(catgry);
+        let cat = myJson[catgry];
+        console.log(cat);
+        setSubCategory(cat);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    apiService
+      .request("subSubCategory")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        console.log(catgry);
+        let cat = myJson[subCategry];
+        console.log(cat);
+        setSubSubCategory(cat);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
@@ -20,42 +128,61 @@ function Managetask({ logoutClick, userDetails }) {
           <div className="col-xs-12 col-sm-5 col-md-5 ">
             <div className="mt-2">
               <label> Task ID </label>
-              <input type="text" className="form-control" />
+              <input
+                type="text"
+                className="form-control"
+                value={userDetail.taskId}
+                disabled={true}
+              />
             </div>
             <div className="mt-2">
               <label> Category </label>
               <select
-                value={categoryOptions}
-                onChange={handleCategoryOptionChange}
+                onChange={handleCategoryChange}
                 className="mt-1 form-control"
+                value={defCat}
               >
-                {categoryOptions.map((item) => {
-                  return <option value={item.label}>{item.value}</option>;
+                {categoryOptions.map((item, index) => {
+                  return (
+                    <option key={index} value={item.value}>
+                      {item.name}
+                    </option>
+                  );
                 })}
               </select>
             </div>
             <div className="mt-2">
               <label> Sub Category </label>
               <select
-                value={categoryOptions}
-                onChange={handleCategoryOptionChange}
+                onChange={handleSubCategoryChange}
                 className="mt-1 form-control"
+                value={defSubCat}
               >
-                {categoryOptions.map((item) => {
-                  return <option value={item.label}>{item.value}</option>;
-                })}
+                {subCategory &&
+                  subCategory.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}>
+                        {item.name}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
             <div className="mt-2">
               <label> Sub Sub Category </label>
               <select
-                value={categoryOptions}
-                onChange={handleCategoryOptionChange}
+                onChange={handleSubSubCategoryChange}
                 className="mt-1 form-control"
+                value={defSubSubCat}
               >
-                {categoryOptions.map((item) => {
-                  return <option value={item.label}>{item.value}</option>;
-                })}
+                {subSubCategory &&
+                  subSubCategory.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}>
+                        {item.name}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
             <div className="mt-2">

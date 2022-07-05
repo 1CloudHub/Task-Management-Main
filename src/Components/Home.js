@@ -6,7 +6,7 @@ function Home() {
   const handleNavClick = (e) => {
     console.log("clicked", e.target.innerText);
     // let el = e.target.innerText;
-    setType((prevState) => e.target.innerText);
+    setType(() => e.target.innerText);
     console.log("type", type);
   };
 

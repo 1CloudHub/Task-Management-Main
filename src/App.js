@@ -1,9 +1,12 @@
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap";
 import React, { useEffect, useState } from "react";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
 import "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css";
+import "react-datepicker/dist/react-datepicker.css";
 import GoogleLogin from "react-google-login";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -15,9 +18,6 @@ import Login from "./Components/Login";
 import Managetask from "./Components/Managetask";
 import Newtask from "./Components/Newtask";
 import Taskhistory from "./Components/Taskhistory";
-import { TiTick } from "react-icons/ti";
-import { faCheck, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function App() {
   const navigate = useNavigate();
@@ -53,8 +53,8 @@ function App() {
   const onFailure = (e) => {
     console.log("failure", e);
   };
-  const logoutSuccess = () => {};
-  const [isloginSuccess, setIsLoginSuccess] = useState(true); //changed this to true for non google login page
+
+  const [isloginSuccess, setIsLoginSuccess] = useState(false); //changed this to true for non google login page
   const [showLogoutMessage, setShowLogoutMessage] = useState(false);
 
   return (
@@ -94,7 +94,17 @@ function App() {
             }
           />
           <Route
-            path="/ManageTask"
+            path="/ManageTask/:id"
+            exact
+            element={
+              <Managetask
+                logoutClick={onLogoutSuccess}
+                userDetails={userDetails}
+              />
+            }
+          />
+          <Route
+            path="/ManageTask/"
             exact
             element={
               <Managetask

@@ -18,6 +18,7 @@ ul li {
 
 :root {
   --theme-color: #fdb913;
+  /* --theme-color: #00a4d2; */
   --shadow-color: 0 0 0 0.25rem rgb(253 185 19 / 57%);
   --bg-clr-white: #ffff;
   --bg-clr-dark: #0000;
@@ -244,4 +245,30 @@ button#dashboard-nav-tab-id-tab-list {
 
 .logout-button:hover {
   background-color: var(--theme-color);
+}
+
+.datePickerField:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.charLeftClass {
+  font-size: small;
+  font-style: italic;
+  float: right;
+  color: black;
+  margin-bottom: 0;
+}
+
+@media only screen and (max-width: 500px) {
+  /* .mobile-responsive {
+    background-color: red;
+  } */
+  .react-bootstrap-table {
+    width: 100%;
+    overflow-x: scroll;
+  }
+  .react-bootstrap-table table {
+    table-layout: auto;
+  }
 }

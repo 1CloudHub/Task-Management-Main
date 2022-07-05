@@ -1,13 +1,12 @@
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { NavDropdown } from "react-bootstrap";
 import { AiFillEdit, AiFillFileAdd } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { FaHistory } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
-import Logout from "./Logout";
 function NavBar({
   logoutClick,
   userDetails = { username: "user", email: "email@1cloudhub.com" },
@@ -32,12 +31,12 @@ function NavBar({
       itemImage: <AiFillFileAdd className="mb-1" />,
       url: "/AddTask",
     },
-    {
-      id: 3,
-      itemName: "View/Edit Task",
-      itemImage: <AiFillEdit className="mb-1" />,
-      url: "/ManageTask",
-    },
+    // {
+    //   id: 3,
+    //   itemName: "View/Edit Task",
+    //   itemImage: <AiFillEdit className="mb-1" />,
+    //   url: "/ManageTask",
+    // },
     {
       id: 4,
       itemName: "Task History",
@@ -53,9 +52,10 @@ function NavBar({
           <div className="nav-title">
             <Link to="/Dashboard">
               <img
-                src="1cloudhub-small-logo.jfif"
+                // src="1cloudhub-small-logo.jfif"
+                src=""
                 className="nav-logo"
-                alt="nav-svasti-logo"
+                alt="Logo"
               />
             </Link>
           </div>
@@ -109,7 +109,7 @@ function NavBar({
                   {userDetails.username}User
                 </NavDropdown.Item>
                 <NavDropdown.Item key="2">
-                  {userDetails.email}"user@1cloudhub.com"
+                  {userDetails.email}user@1cloudhub.com
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item key="3" onClick={logout}>

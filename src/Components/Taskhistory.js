@@ -88,9 +88,7 @@ function Taskhistory({ logoutClick, userDetails }) {
           </div>
           <div className="col"></div>
         </div>
-        <div className="row mb-5">
-          <TableList columns={""} />
-        </div>
+        <div className="row mb-5">{/* <TableList columns={""} /> */}</div>
       </div>
       <br />
       <br />

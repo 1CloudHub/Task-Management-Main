@@ -3,10 +3,18 @@ import React, { useEffect, useState } from "react";
 
 const AnyReactComponent = ({ text }) => <div>{text}</div>;
 
-function MapComponent() {
+function MapComponent({ getLat }) {
   useEffect(() => {
     getLocation();
+    getPosition();
   }, []);
+
+  const getPosition = () => {
+    console.log(navigator.geolocation.getCurrentPosition(samp));
+  };
+  const samp = (e) => {
+    console.log(e);
+  };
   const getLocation = () => {
     // check if user's browser supports Navigator.geolocation
     // setShowMap(!showMap);
@@ -45,11 +53,14 @@ function MapComponent() {
         break;
     }
   };
+
   const displayLocation = (position) => {
     lat = position.coords.latitude;
     lng = position.coords.longitude;
     console.log(`Current Latitude is ${lat} and your longitude is ${lng}`);
+    getLat(lat, lng);
   };
+
   const options = {
     enableHighAccuracy: true,
   };

@@ -1,58 +1,93 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import ReactDatePicker from "react-datepicker";
+import { BsCalendar } from "react-icons/bs";
+import APIService from "../../Services/APIService";
 import BarGraph from "./BarGraph";
 import PieChart from "./PieChart";
 
 function Graphs() {
   const [category, setCategory] = useState([]);
-  const [subCategory, setSubCategory] = useState({});
-  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
-  const [subSubCategory, setSubSubCategory] = useState([]);
-  const [subSubCategoryOptions, setSubSubCategoryOptions] = useState([]);
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [taskStatus, setTaskStatus] = useState([]);
+  const apiService = new APIService();
   useEffect(() => {
-    fetch("data.json", {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })
-      .then(function (response) {
-        console.log(response);
+    apiService
+      .request("category")
+      .then((response) => {
         return response.json();
       })
       .then(function (myJson) {
         console.log(myJson);
-        let catgry = myJson.category;
+        let catgry = myJson;
         setCategory(catgry);
-        let subctgry = myJson.subCategory;
-        setSubCategory(subctgry);
-        let subsubctgry = myJson.subSubCategory;
-        setSubSubCategory(subsubctgry);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    apiService
+      .request("taskStatus")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        console.log(myJson);
+        let catgry = myJson;
+        setTaskStatus(catgry);
       })
       .catch((error) => {
         console.log(error);
       });
   }, []);
-  let key = 0;
 
   const handleCategoryChange = (selectedValue) => {
-    console.log(selectedValue.target.value, subCategory);
-    key = selectedValue.target.value;
-    let values = subCategory[key];
-    setSubCategoryOptions(values);
+    console.log(selectedValue.target.value);
+    // let key = selectedValue.target.value;
   };
 
-  const handleSubCategoryChange = (e) => {
-    console.log(e.target.value, subSubCategory);
-    key = e.target.value;
-    let values = subSubCategory[key];
-    setSubSubCategoryOptions(values);
-  };
   return (
     <div>
       <div className="container ">
         <div className="row">
-          <div className=" col-sm-4 col-lg-4 col-md-4 col-xs-4">
+          <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+            <label className=" w-100">
+              {" "}
+              <span className="asterisk_input ">Start Date</span>
+              <div className="d-flex form-control cursor-pointer mt-2">
+                <ReactDatePicker
+                  type="text"
+                  name="fromDate"
+                  className="datePickerField col-lg-12 border-0 "
+                  dateFormat="dd-MM-yyyy"
+                  selected={startDate}
+                  placeholderText="start date"
+                  onChange={(date) => setStartDate(date)}
+                />
+                <BsCalendar className="mt-1" />
+              </div>
+            </label>
+          </div>
+          <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+            <label className="w-100">
+              {" "}
+              <span className="asterisk_input ">End Date</span>
+              <div className="d-flex form-control cursor-pointer mt-2">
+                <ReactDatePicker
+                  type="text"
+                  name="fromDate"
+                  className="datePickerField col-lg-12 border-0 "
+                  dateFormat="dd-MM-yyyy"
+                  minDate={startDate}
+                  selected={endDate}
+                  placeholderText="end date"
+                  onChange={(date) => setEndDate(date)}
+                />
+                <BsCalendar className="mt-1" />
+              </div>
+            </label>
+          </div>
+          <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
             <label> Category </label>
             <select
               onChange={handleCategoryChange}
@@ -69,29 +104,15 @@ function Graphs() {
                 })}
             </select>
           </div>
-          <div className=" col-sm-4 col-lg-4 col-md-4 col-xs-4">
-            <label> Sub Category </label>
+          <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+            <label> Task Status </label>
             <select
-              onChange={handleSubCategoryChange}
+              onChange={handleCategoryChange}
               className="mt-2 form-control"
             >
               <option value="">Choose..</option>
-              {subCategoryOptions &&
-                subCategoryOptions.map((item, index) => {
-                  return (
-                    <option key={index} value={item.value}>
-                      {item.name}
-                    </option>
-                  );
-                })}
-            </select>
-          </div>
-          <div className=" col-sm-4 col-lg-4 col-md-4 col-xs-4">
-            <label> Sub Sub Category </label>
-            <select className="mt-2 form-control">
-              <option value="">Choose..</option>
-              {subSubCategoryOptions &&
-                subSubCategoryOptions.map((item, index) => {
+              {taskStatus &&
+                taskStatus.map((item, index) => {
                   return (
                     <option key={index} value={item.value}>
                       {item.name}
@@ -106,6 +127,7 @@ function Graphs() {
       <div className="row">
         <div className=" col-xs-6 col-sm-6 col-md-12 col-lg-6 ">
           <BarGraph />
+          {/* <LineChart /> */}
         </div>
         <div className="col-xs-6 col-sm-6 col-md-12 col-lg-6 ">
           <PieChart />

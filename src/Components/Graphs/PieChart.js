@@ -1,7 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactEcharts from "echarts-for-react";
+import APIService from "../../Services/APIService";
 
 function PieChart() {
+  const [data, setData] = useState([]);
+  const apiService = new APIService();
+  useEffect(() => {
+    apiService
+      .request("piechart")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        setData(myJson);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
   const option = {
     title: {
       text: "",
@@ -20,13 +37,7 @@ function PieChart() {
         name: "Access From",
         type: "pie",
         radius: "50%",
-        data: [
-          { value: 1048, name: "Search Engine" },
-          { value: 735, name: "Direct" },
-          { value: 580, name: "Email" },
-          { value: 484, name: "Union Ads" },
-          { value: 300, name: "Video Ads" },
-        ],
+        data: data,
         emphasis: {
           itemStyle: {
             shadowBlur: 10,

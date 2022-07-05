@@ -1,17 +1,46 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactEcharts from "echarts-for-react";
+import APIService from "../../Services/APIService";
 function BarGraph() {
+  const [xData, setXData] = useState([]);
+  const [yData, setYData] = useState([]);
+  const apiService = new APIService();
+  useEffect(() => {
+    apiService
+      .request("bargraph-x")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        setXData(myJson);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    apiService
+      .request("bargraph-y")
+      .then((response) => {
+        return response.json();
+      })
+      .then(function (myJson) {
+        setYData(myJson);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
   const option = {
     xAxis: {
       type: "category",
-      data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      data: xData,
     },
     yAxis: {
       type: "value",
     },
+    color: ["#fac858"],
     series: [
       {
-        data: [120, 200, 150, 80, 70, 110, 130],
+        data: yData,
         type: "bar",
       },
     ],

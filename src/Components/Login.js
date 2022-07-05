@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 import { IoIosArrowBack } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [hide, setHide] = useState(false);
@@ -14,7 +14,7 @@ function Login() {
     console.log(password.current.value);
     navigate("/Dashboard");
   };
-  const onSubmitForgotPass = (e) => {
+  const onSubmitForgotPass = () => {
     setHide(!hide);
   };
   return (

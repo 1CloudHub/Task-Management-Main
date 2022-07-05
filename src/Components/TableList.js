@@ -1,23 +1,31 @@
 import React, { useEffect, useState } from "react";
 import BootstrapTable from "react-bootstrap-table-next";
 import paginationFactory from "react-bootstrap-table2-paginator";
-import { Link, useNavigate } from "react-router-dom";
 import ToolkitProvider, {
   Search,
 } from "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit";
+import ReactDatePicker from "react-datepicker";
+import { BsCalendar } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
 import APIService from "../Services/APIService";
 
-function TableList({ columnss }) {
+function TableList() {
   const apiService = new APIService();
   const navigate = useNavigate();
+  const [category, setCategory] = useState([]);
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState();
+  let key = 0;
   const columns = [
     {
       dataField: "id",
       text: "Task ID",
       classes: "tableColumn",
       events: {
-        onClick: (e, column, columnIndex, row, rowIndex) => {
-          navigate("/TaskHistory");
+        onClick: (e, column, columnIndex, row) => {
+          console.log("eeeeeeeeeeee", row);
+          navigate(`/ManageTask/${row.id}`);
         },
       },
       // <Link to={`/TaskHistory`}>{cellInfo.row.original.id}</Link>
@@ -27,8 +35,8 @@ function TableList({ columnss }) {
       text: "Category Name",
       classes: "tableColumn",
       events: {
-        onClick: (e, column, columnIndex, row, rowIndex) => {
-          navigate("/TaskHistory");
+        onClick: (e, column, columnIndex, row) => {
+          navigate(`/ManageTask/${row.id}`);
         },
       },
     },
@@ -64,27 +72,122 @@ function TableList({ columnss }) {
   const { SearchBar, ClearSearchButton } = Search;
 
   const [data, setData] = useState([]);
+  const [taskStatus, setTaskStatus] = useState([]);
   useEffect(() => {
-    // apiService
-    //   .request("dashboardTableData")
-    //   .then((response) => {
-    //     return response.json();
-    //   })
-    //   .then((data) => {
-    //     setData(data);
-    //   })
-    //   .catch((error) => {});
-    fetch("data.json")
+    apiService
+      .request("category")
       .then((response) => {
         return response.json();
       })
-      .then((res) => {
-        setData(res.dashboardTableData);
-      });
+      .then((data) => {
+        setCategory(data);
+      })
+      .catch(() => {});
+    apiService
+      .request("dashboardTableData")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setData(data);
+      })
+      .catch(() => {});
+    apiService
+      .request("taskStatus")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        setTaskStatus(data);
+      })
+      .catch(() => {});
   }, []);
+  const handleCategoryChange = (selectedValue) => {
+    console.log(selectedValue.target.value);
+    key = selectedValue.target.value;
+
+    setData((prevState) => ({ ...prevState, category: key }));
+  };
+
   return (
     <>
       <div className="container-fluid ">
+        <div className="container">
+          <div className=" row ">
+            <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+              <label className=" w-100">
+                {" "}
+                <span className="asterisk_input ">Start Date</span>
+                <div className="d-flex form-control cursor-pointer mt-2">
+                  <ReactDatePicker
+                    type="text"
+                    name="fromDate"
+                    className="datePickerField col-lg-12 border-0 "
+                    dateFormat="dd-MM-yyyy"
+                    selected={startDate}
+                    placeholderText="start date"
+                    onChange={(date) => setStartDate(date)}
+                  />
+                  <BsCalendar className="mt-1" />
+                </div>
+              </label>
+            </div>
+            <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+              <label className="w-100">
+                {" "}
+                <span className="asterisk_input ">End Date</span>
+                <div className="d-flex form-control cursor-pointer mt-2">
+                  <ReactDatePicker
+                    type="text"
+                    name="fromDate"
+                    className="datePickerField col-lg-12 border-0 "
+                    dateFormat="dd-MM-yyyy"
+                    minDate={startDate}
+                    selected={startDate}
+                    placeholderText="end date"
+                    onChange={(date) => setEndDate(date)}
+                  />
+                  <BsCalendar className="mt-1" />
+                </div>
+              </label>
+            </div>
+            <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+              <label> Category </label>
+              <select
+                onChange={handleCategoryChange}
+                className="mt-2 form-control"
+              >
+                <option value="">Choose..</option>
+                {category &&
+                  category.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}>
+                        {item.name}
+                      </option>
+                    );
+                  })}
+              </select>
+            </div>
+            <div className=" col-sm-3 col-lg-3 col-md-3 col-xs-3">
+              <label> Task Status </label>
+              <select
+                onChange={handleCategoryChange}
+                className="mt-2 form-control"
+              >
+                <option value="">Choose..</option>
+                {taskStatus &&
+                  taskStatus.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}>
+                        {item.name}
+                      </option>
+                    );
+                  })}
+              </select>
+            </div>
+          </div>
+        </div>
+        <br />
         <ToolkitProvider keyField="id" data={data} columns={columns} search>
           {(props) => (
             <>
@@ -105,6 +208,7 @@ function TableList({ columnss }) {
               </div>
               <BootstrapTable
                 keyField="id"
+                classes="mobile-responsive table-responsive"
                 rowClasses={"cursor-pointer"}
                 {...props.baseProps}
                 pagination={paginationFactory({

@@ -179,7 +179,7 @@
   "dashboardTableData": [
     {
       "id": 1,
-      "category": "Loan",
+      "category": "Interest",
       "subCatagory": "Personal",
       "subSubCatagory": "Male",
       "subject": "Loan Type",
@@ -243,5 +243,54 @@
       "createdBy": "Drake",
       "assignedTo": "Oliver"
     }
-  ]
+  ],
+  "bargraph-x": ["New", "In Progress", "Closed", "Pending"],
+  "bargraph-y": [20, 30, 15, 8],
+  "piechart": [
+    { "value": 6, "name": "New" },
+    { "value": 7, "name": "In Progress" },
+    { "value": 5, "name": "Closed" },
+    { "value": 4, "name": "Pending" }
+  ],
+  "taskStatus": [
+    {
+      "name": "New",
+      "value": "new",
+      "id": 1
+    },
+    {
+      "name": "In progress",
+      "value": "inProgress",
+      "id": 2
+    },
+    {
+      "name": "Pending",
+      "value": "pending",
+      "id": 3
+    },
+    {
+      "name": "Closed",
+      "value": "closed",
+      "id": 4
+    }
+  ],
+  "1": {
+    "taskId": 1,
+    "category": "interest",
+    "subCategory": "personInterest",
+    "subSubCategory": "homeintRequest",
+    "Status": "Completed",
+    "lastStatusTimeStamp": "21-04-2021",
+    "lastUpdatedBy": "Rick",
+    "createdOn": "02-02-2021",
+    "Notes": "Status is completed",
+    "createdBy": "Drake",
+    "subject": "Loan Type",
+    "description": "Ticket is created by Drake ",
+    "linkToPrevious": "",
+    "assignedTo": "Oliver",
+    "ETA": "--",
+    "lat": "13",
+    "longitude": "18"
+  }
 }

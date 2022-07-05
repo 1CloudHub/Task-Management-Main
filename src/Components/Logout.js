@@ -9,10 +9,10 @@ function Logout({ logoutClick }) {
           clientId={
             "558355949896-4iqblbm56lvqs2fc997tqflv6bc29olp.apps.googleusercontent.com"
           }
-          render={(props) => (
+          render={() => (
             <p
               className="px-3 py-1 mb-1 border-0 logout-button"
-              onClick={props.onClick}
+              // onClick={props.onClick}
             >
               Logout
             </p>
