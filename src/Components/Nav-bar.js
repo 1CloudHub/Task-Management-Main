@@ -5,6 +5,7 @@ import { NavDropdown } from "react-bootstrap";
 import { AiFillEdit, AiFillFileAdd } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { FaHistory } from "react-icons/fa";
+import { FiSearch } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 function NavBar({
@@ -45,6 +46,13 @@ function NavBar({
     },
   ];
 
+  const handleSearch = (e) => {
+    if (e.key === "Enter") {
+      console.log("enter press here! ");
+      navigateTo("/SearchList");
+    }
+  };
+
   return (
     <div>
       <div className="nav-bar container-fluid bg-theme-color shadow fixed-top">
@@ -82,6 +90,53 @@ function NavBar({
                     : "d-flex m-0 cursor-pointer nav-ul-lg logout"
                 }
               >
+                <li>
+                  {/* <div class="input-group ">
+                    <input
+                      type="text"
+                      class="form-control search-bar"
+                      placeholder="search ..."
+                      aria-label="Recipient's username"
+                      aria-describedby="basic-addon2"
+                    />
+                    <div class="input-group-append search-bar rounded">
+                      <span class="input-group-text" id="basic-addon2">
+                        <FiSearch className="mt-1 mb-1" />
+                      </span>
+                    </div>
+                  </div> */}
+                  <div className="input-group ">
+                    <input
+                      type="text"
+                      list="search"
+                      className="form-control search-bar"
+                      placeholder="search "
+                      aria-describedby="basic-addon2"
+                      onKeyDown={handleSearch}
+                    />
+                    <span
+                      className="input-search-text cursor-pointer"
+                      id="basic-addon2"
+                    >
+                      <FiSearch className="mt-1 mb-1" />
+                    </span>
+                  </div>
+                  <datalist id="search">
+                    <option>Deposit</option>
+                    <option>Loan</option>
+                    <option>Interest</option>
+                    <option>Finance</option>
+                  </datalist>
+                  {/* <div className="input-group-append">
+                      <span
+                        className="input-search-text cursor-pointer"
+                        id="basic-addon2"
+                      >
+                        <FiSearch className="mt-1 mb-1" />
+                      </span>
+                    </div>
+                  </div> */}
+                </li>
                 {navList.map((item, index) => {
                   return (
                     <>

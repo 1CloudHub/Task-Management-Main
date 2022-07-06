@@ -17,7 +17,7 @@ ul li {
 }
 
 :root {
-  --theme-color: #fdb913;
+  --theme-color: #ffd46c;
   /* --theme-color: #00a4d2; */
   --shadow-color: 0 0 0 0.25rem rgb(253 185 19 / 57%);
   --bg-clr-white: #ffff;
@@ -116,7 +116,7 @@ a.dropdown-item {
 }
 
 ul.d-flex.m-0.cursor-pointer li {
-  color: white;
+  color: black;
   font-weight: 500;
   font-size: 16px;
 }
@@ -271,4 +271,17 @@ button#dashboard-nav-tab-id-tab-list {
   .react-bootstrap-table table {
     table-layout: auto;
   }
+}
+
+.search-bar {
+  height: 27px;
+  padding: 5px 32px 6px 10px;
+  font-size: small;
+}
+
+.input-search-text {
+  color: black;
+  position: relative;
+  right: 25px;
+  z-index: 111;
 }

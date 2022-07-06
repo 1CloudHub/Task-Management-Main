@@ -17,6 +17,7 @@ import GoogleAuth from "./Components/GoogleAuth";
 import Login from "./Components/Login";
 import Managetask from "./Components/Managetask";
 import Newtask from "./Components/Newtask";
+import SearchList from "./Components/SearchList";
 import Taskhistory from "./Components/Taskhistory";
 
 function App() {
@@ -108,6 +109,16 @@ function App() {
             exact
             element={
               <Managetask
+                logoutClick={onLogoutSuccess}
+                userDetails={userDetails}
+              />
+            }
+          />
+          <Route
+            path="/SearchList"
+            exact
+            element={
+              <SearchList
                 logoutClick={onLogoutSuccess}
                 userDetails={userDetails}
               />
