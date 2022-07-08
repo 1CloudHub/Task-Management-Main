@@ -37,7 +37,7 @@ function App() {
       email: e.profileObj.email,
     });
 
-    setIsLoginSuccess(true);
+    // setIsLoginSuccess(true);
     if (currentURL === "/") {
       navigate("/Dashboard");
     } else {
@@ -47,23 +47,23 @@ function App() {
 
   const onLogoutSuccess = () => {
     // alert("logout called");
-    setIsLoginSuccess(false);
-    setShowLogoutMessage(true);
+    // setIsLoginSuccess(false);
+    // setShowLogoutMessage(true);
     navigate("/");
   };
   const onFailure = (e) => {
     console.log("failure", e);
   };
 
-  const [isloginSuccess, setIsLoginSuccess] = useState(false); //changed this to true for non google login page
+  const [isloginSuccess, setIsLoginSuccess] = useState(true); //changed this to true for non google login page
   const [showLogoutMessage, setShowLogoutMessage] = useState(false);
 
   return (
     <>
       {isloginSuccess ? (
         <Routes>
-          <Route path="/s" exact element={<GoogleAuth />} />
-          <Route path="/" exact element={<Login />} />
+          <Route path="/" exact element={<GoogleAuth />} />
+          {/* <Route path="/" exact element={<Login />} /> */}
           <Route
             path="/Dashboard"
             exact
@@ -155,6 +155,8 @@ function App() {
                   className=""
                   clientId={
                     "558355949896-4iqblbm56lvqs2fc997tqflv6bc29olp.apps.googleusercontent.com"
+                    //Jothi Gave
+                    // "637570065678-jlt07711go3864ss5p118r3d73aedt1p.apps.googleusercontent.com"
                   }
                   buttonText={"Click here to Login "}
                   // uxMode="redirect" // redirectUri={"http://localhost:3000/Dashboard"}

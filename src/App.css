@@ -117,8 +117,8 @@ a.dropdown-item {
 
 ul.d-flex.m-0.cursor-pointer li {
   color: black;
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: 400;
+  font-size: 15px;
 }
 
 .cursor-pointer {
@@ -271,6 +271,10 @@ button#dashboard-nav-tab-id-tab-list {
   .react-bootstrap-table table {
     table-layout: auto;
   }
+
+  .center-align {
+    text-align: center;
+  }
 }
 
 .search-bar {
@@ -284,4 +288,8 @@ button#dashboard-nav-tab-id-tab-list {
   position: relative;
   right: 25px;
   z-index: 111;
+}
+
+.footer-font {
+  font-size: small !important;
 }

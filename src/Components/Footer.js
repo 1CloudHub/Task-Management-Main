@@ -38,14 +38,14 @@ const Footer = () => {
                 {navList.map((item) => {
                   return (
                     <>
-                      <li className="px-2 " key={item.itemImage}>
+                      <li className="px-2 footer-font" key={item.itemImage}>
                         {" "}
                         {item.itemName} &nbsp; {item.itemImage}
                       </li>
                     </>
                   );
                 })}
-                <li>
+                <li className="footer-font">
                   Copyright <AiOutlineCopyrightCircle className="mb-1" /> 2022
                   Company, Inc. All Rights Reserved.
                 </li>

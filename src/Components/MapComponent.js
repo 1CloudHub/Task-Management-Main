@@ -78,7 +78,7 @@ function MapComponent({ getLat }) {
       <div style={{ height: "63vh" }}>
         <GoogleMapReact
           bootstrapURLKeys={{
-            key: "",
+            key: "AIzaSyBs7rvWtf9wbCNzqG4LPfpxM4AQH5wVm1o",
           }}
           defaultCenter={center}
           defaultZoom={zoom}

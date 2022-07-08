@@ -2,12 +2,14 @@ import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { NavDropdown } from "react-bootstrap";
+import { GoogleLogout } from "react-google-login";
 import { AiFillEdit, AiFillFileAdd } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { FaHistory } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
+import Logout from "./Logout";
 function NavBar({
   logoutClick,
   userDetails = { username: "user", email: "email@1cloudhub.com" },
@@ -61,7 +63,7 @@ function NavBar({
             <Link to="/Dashboard">
               <img
                 // src="1cloudhub-small-logo.jfif"
-                src=""
+                src="svasti_navlogo-nobg.png"
                 className="nav-logo"
                 alt="Logo"
               />
@@ -167,10 +169,15 @@ function NavBar({
                   {userDetails.email}user@1cloudhub.com
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
-                <NavDropdown.Item key="3" onClick={logout}>
-                  Logout
+                <NavDropdown.Item key="3">
+                  {/* onClick={logout} */}
+                  {/* Logout */}
+                  <Logout logoutClick={logoutClick} />
+                  {/* <GoogleLogout
+                    buttonText="Logout"
+                    onLogoutSuccess={logout}
+                  ></GoogleLogout> */}
                 </NavDropdown.Item>
-                {/* <Logout logoutClick={logoutClick} /> */}
               </NavDropdown>
             </div>
           </div>
