@@ -49,12 +49,12 @@ function NavBar({
     //   itemImage: <AiFillEdit className="mb-1" />,
     //   url: "/ManageTask",
     // },
-    {
-      id: 4,
-      itemName: "Task History",
-      itemImage: <FaHistory className="mb-1" />,
-      url: "/TaskHistory",
-    },
+    // {
+    //   id: 4,
+    //   itemName: "Task History",
+    //   itemImage: <FaHistory className="mb-1" />,
+    //   url: "/TaskHistory",
+    // },
   ];
 
   const handleSearch = (e) => {
@@ -66,7 +66,7 @@ function NavBar({
 
   return (
     <div>
-      <Navbar className="nav-height" fixed="top" bg="light" expand="lg">
+      <Navbar className="shadow" fixed="top" bg="light" expand="lg">
         <Container fluid>
           <Navbar.Brand href="#">
             <Link to="/Dashboard">
@@ -106,7 +106,7 @@ function NavBar({
               {navList.map((item, index) => {
                 return (
                   <>
-                    <Nav.Link href="/">
+                    <Nav.Link>
                       <Link to={item.url}>
                         {" "}
                         {item.itemImage}

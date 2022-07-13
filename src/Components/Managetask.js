@@ -5,11 +5,98 @@ import Footer from "./Footer";
 import MapComponent from "./MapComponent";
 import NavBar from "./Nav-bar";
 import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
+import { AiFillEdit } from "react-icons/ai";
+import ReactDatePicker from "react-datepicker";
+import { BsCalendar } from "react-icons/bs";
+import { gql, useLazyQuery, useQuery, useMutation } from "@apollo/client";
+
+const VIEW_TASK_QUERY = gql`
+  query VIEWTASK($taskId: ID!) {
+    getTask(taskId: $taskId) {
+      taskId
+      taskGroupId
+      categoryId
+      createdDate {
+        formatString(format: "dd/MM/yyyy")
+      }
+      subCategoryId
+      subSubCategoryId
+      title
+      resolution
+      currentAssignee
+      createdBy
+      resolvedBy
+      resolvedDate {
+        formatString(format: "dd/MM/yyyy")
+      }
+      status
+      description
+    }
+  }
+`;
+
+const CATEGORY_LIST_QUERY = gql`
+  query CategoryList {
+    getCategories {
+      categoryId
+      name
+    }
+  }
+`;
+
+const SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
+  query GETSUBCATEGORYLIST($categoryId: Int!) {
+    getSubCategoriesByCategoryId(categoryId: $categoryId) {
+      subCategoryId
+      name
+    }
+  }
+`;
+
+const SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
+  query GETSUBSUBCATEGORYLIST($subCategoryId: Int!) {
+    getSubSubCategoriesBySubCategoryId(subCategoryId: $subCategoryId) {
+      subCategoryId
+      name
+    }
+  }
+`;
 
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
   const [userDetail, setUserDetail] = useState([]);
   console.log(id);
+  let taskId = parseInt(id);
+
+  const response = useQuery(VIEW_TASK_QUERY, {
+    variables: { taskId: 27 },
+  });
+  const viewTaskValues = response.data;
+  console.log(viewTaskValues);
+  let categoryId =
+    viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
+  console.log(categoryId);
+  // to get categoryList
+  const getCategoryList = useQuery(CATEGORY_LIST_QUERY);
+  console.log("getCategoryList", getCategoryList);
+
+  // to get subcategory list
+  const getSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
+    variables: {
+      categoryId: categoryId,
+    },
+  });
+  console.log("getSubCategoryList --", getSubCategoryList);
+
+  let subCategoryId =
+    viewTaskValues && parseInt(viewTaskValues.getTask.subCategoryId);
+
+  const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
+    variables: {
+      subCategoryId: subCategoryId,
+    },
+  });
+
   const apiService = new APIService();
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
@@ -119,44 +206,44 @@ function Managetask({ logoutClick, userDetails }) {
       });
   }, []);
   const docs = [
-    { uri: "https://www.clickdimensions.com/links/TestPDFfile.pdf" },
-    { uri: "http://www.africau.edu/images/default/sample.pdf" },
     {
-      uri: "https://i.picsum.photos/id/984/200/300.jpg?hmac=mLBN3lSvSl08Vh8Kw96TLY7v239gr1idtxVXvYFDkSc",
+      uri: "https://i.picsum.photos/id/0/5616/3744.jpg?hmac=3GAAioiQziMGEtLbfrdbcoenXoWAW-zlyEAMkfEdBzQ",
     }, // Local File
   ];
-
+  const [startDate, setStartDate] = useState("");
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
       <br />
       <div className="main-container mb-4 container">
-        <h5 className="themeColor"> View Task </h5>
+        <h5 className="themeColor">
+          {" "}
+          View Task / Edit Task &nbsp;
+          <span title="edit" className="assignbutton">
+            <AiFillEdit />
+          </span>
+        </h5>
+
         <div className="row">
           <div className="col-xs-12 col-sm-5 col-md-5 ">
             <div className="mt-2">
               <label> Task ID </label>
-              <input
-                type="text"
-                className="form-control"
-                value={userDetail.taskId}
-                disabled={true}
-              />
+              <div>{viewTaskValues && viewTaskValues.getTask.taskId}</div>
             </div>
             <div className="mt-2">
               <label> Category </label>
               <select
-                onChange={handleCategoryChange}
+                // onChange={handleCategoryChange}
                 className="mt-1 form-control"
-                value={defCat}
               >
-                {categoryOptions.map((item, index) => {
-                  return (
-                    <option key={index} value={item.value}>
-                      {item.name}
-                    </option>
-                  );
-                })}
+                {getCategoryList.data &&
+                  getCategoryList.data.getCategories.map((item, index) => {
+                    return (
+                      <option key={index} value={item.subCategoryId}>
+                        {item.name}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
             <div className="mt-2">
@@ -164,16 +251,17 @@ function Managetask({ logoutClick, userDetails }) {
               <select
                 onChange={handleSubCategoryChange}
                 className="mt-1 form-control"
-                value={defSubCat}
               >
-                {subCategory &&
-                  subCategory.map((item, index) => {
-                    return (
-                      <option key={index} value={item.value}>
-                        {item.name}
-                      </option>
-                    );
-                  })}
+                {getSubCategoryList.data &&
+                  getSubCategoryList.data.getSubCategoriesByCategoryId.map(
+                    (item, index) => {
+                      return (
+                        <option key={index} value={item.value}>
+                          {item.name}
+                        </option>
+                      );
+                    }
+                  )}
               </select>
             </div>
             <div className="mt-2">
@@ -181,33 +269,41 @@ function Managetask({ logoutClick, userDetails }) {
               <select
                 onChange={handleSubSubCategoryChange}
                 className="mt-1 form-control"
-                value={defSubSubCat}
               >
-                {subSubCategory &&
-                  subSubCategory.map((item, index) => {
-                    return (
-                      <option key={index} value={item.value}>
-                        {item.name}
-                      </option>
-                    );
-                  })}
+                {getSubSubCategoryList.data && getSubSubCategoryList.data ? (
+                  getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
+                    (item, index) => {
+                      return (
+                        <option key={index} value={item.subSubCategoryId}>
+                          {item.name}
+                        </option>
+                      );
+                    }
+                  )
+                ) : (
+                  <option value={"No Data"}>No Data</option>
+                )}
               </select>
             </div>
             <div className="mt-2">
               <label> Status </label>
-              <input type="text" className="form-control" />
+              <div>{viewTaskValues && viewTaskValues.getTask.status}</div>
             </div>
             <div className="mt-2">
               <label> Last Status TimeStamp </label>
-              <input type="text" className="form-control mt-1" />
+
+              <div>--</div>
             </div>
             <div className="mt-2">
               <label> Last Updated By </label>
-              <input type="text" className="form-control mt-1" />
+              <div>{viewTaskValues && viewTaskValues.getTask.resolvedBy}</div>
             </div>
             <div className="mt-2">
               <label>Created On </label>
-              <input type="text" className="form-control mt-1" />
+              <div>
+                {viewTaskValues &&
+                  viewTaskValues.getTask.createdDate.formatString}
+              </div>
             </div>
             <div className="mt-2">
               <label> Documents </label>
@@ -233,23 +329,46 @@ function Managetask({ logoutClick, userDetails }) {
           <div className="col-xs-12 col-sm-5 col-md-5  ">
             <div className="mt-2">
               <label> Subject </label>
-              <input type="text" className="form-control" />
+              <input
+                type="text"
+                value={viewTaskValues && viewTaskValues.getTask.title}
+                className="form-control mt-1"
+              />
             </div>
             <div className="mt-2">
               <label> Description</label>
-              <input type="text" className="form-control mt-1" />
+              <input
+                type="text"
+                className="form-control mt-1 "
+                value={viewTaskValues && viewTaskValues.getTask.description}
+              />
+              {/* {viewTaskValues && viewTaskValues.getTask.description} */}
+              {/* </textarea> */}
             </div>
             <div className="mt-2">
               <label> Link to Previous </label>
-              <input type="text" className="form-control mt-1" />
             </div>
             <div className="mt-2">
               <label> Assigned To </label>
               <input type="text" className="form-control mt-1" />
             </div>
             <div className="mt-2">
-              <label> ETA </label>
-              <input type="text" className="form-control mt-1" />
+              <label className="mt-1 w-100">
+                {" "}
+                ETA
+                <div className="d-flex form-control cursor-pointer mt-1">
+                  <ReactDatePicker
+                    type="text"
+                    name="fromDate"
+                    className="datePickerField col-lg-12 border-0 "
+                    dateFormat="dd-MM-yyyy"
+                    selected={startDate}
+                    placeholderText="start date"
+                    onChange={(date) => setStartDate(date)}
+                  />
+                  <BsCalendar className="mt-1" />
+                </div>
+              </label>
             </div>
             <div className="mt-2">
               {/* <Link to="/taskhistory"> */}

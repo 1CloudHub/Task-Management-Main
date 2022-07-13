@@ -2,46 +2,83 @@ import React, { useEffect, useState } from "react";
 import ReactEcharts from "echarts-for-react";
 import APIService from "../../Services/APIService";
 function BarGraph() {
-  const [xData, setXData] = useState([]);
-  const [yData, setYData] = useState([]);
-  const apiService = new APIService();
-  useEffect(() => {
-    apiService
-      .request("bargraph-x")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        setXData(myJson);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    apiService
-      .request("bargraph-y")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        setYData(myJson);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
+  const status = {
+    getFilteredTasks: [
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+      {
+        status: 0,
+      },
+    ],
+  };
+
+  // let output = array1.reduce(
+  //   (previousValue, currentValue) => previousValue + currentValue,
+  //   initialValue
+  // );
+
   const option = {
     xAxis: {
       type: "category",
-      data: xData,
+      data: [
+        "Initiated",
+        "New",
+        "In Progress",
+        "Reassigned",
+        "Resolved",
+        "Closed",
+        "Reopened",
+      ],
+      axisLabel: {
+        interval: 0,
+        rotate: 50, //If the label names are too long you can manage this by rotating the label.
+      },
     },
     yAxis: {
       type: "value",
     },
-    color: ["#fac858"],
+    tooltip: {
+      trigger: "axis",
+    },
+
     series: [
       {
-        data: yData,
         type: "bar",
+        data: [, 0, 9.0, 26.4, 28.7, 70.7, 48.7],
       },
     ],
   };

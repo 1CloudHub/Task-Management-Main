@@ -5,14 +5,28 @@ import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
+const client = new ApolloClient({
+  uri: "http://3.110.3.72/graphql",
+  cache: new InMemoryCache(),
+  fetchOptions: {
+    mode: "no-cors",
+  },
+  headers: {
+    "Authentication-Token": "saldfal00965-klal998-jknj",
+    userId: "1",
+  },
+});
 root.render(
   <>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ApolloProvider client={client}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ApolloProvider>
   </>
 );
 

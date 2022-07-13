@@ -17,6 +17,7 @@ function Taskhistory({ logoutClick, userDetails }) {
       <div className="main-container mb-4 container">
         <h5 className="themeColor"> Task History </h5>
         <br />
+
         <div className="row">
           <div className="col"></div>
           <div className="col-xs-12 col-sm-5 col-md-5 "></div>

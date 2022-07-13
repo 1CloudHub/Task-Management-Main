@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Varela Round", Arial, sans-serif;
 }
 ul {
   margin: 0;
@@ -48,8 +49,10 @@ ul li {
 }
 
 .form-control {
-  border: 1px solid var(--theme-color) !important;
+  /* border: 1px solid var(--theme-color) !important; */
   border-radius: 0 !important;
+  padding: 0.1rem 0.55rem;
+  font-size: small;
 }
 
 .form-control:focus {
@@ -186,7 +189,7 @@ ul.cursor-pointer.m-0.nav-ul-lg li a {
 }
 
 .dashboard-tabs li button {
-  padding: 0.75em 4em;
+  padding: 0.75em 10em;
 }
 
 button#dashboard-nav-tab-id-tab-graph,
@@ -194,6 +197,25 @@ button#dashboard-nav-tab-id-tab-list {
   color: var(--theme-color) !important;
 }
 
+.nav-tabs .nav-item.show .nav-link,
+.nav-tabs .nav-link.active {
+  color: #495057;
+  background-color: #fff;
+  border: none;
+  border-bottom: 4px solid #fdb813;
+}
+
+.nav-link {
+  color: #21252973;
+}
+
+.clear-button {
+  padding: 14px 1px 0px 3px;
+}
+
+.font-size-small {
+  font-size: smaller;
+}
 @media (max-width: 1700px) {
   .react-bootstrap-table table {
     font-size: 0.8em !important;
@@ -202,6 +224,12 @@ button#dashboard-nav-tab-id-tab-list {
 
 /* For extremely small screen devices (595px and below) */
 @media only screen and (max-width: 595px) {
+  ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
+    justify-content: center;
+  }
+  .dashboard-tabs li button {
+    padding: 0.55em 2em;
+  }
 }
 
 /* Small screen devices (600px and above) */
@@ -304,4 +332,54 @@ button#dashboard-nav-tab-id-tab-list {
 
 .color-black {
   color: black;
+}
+
+.asterisk_input:after {
+  content: " *";
+  color: red;
+}
+.input-view-icon {
+  position: absolute;
+  right: 10px;
+  z-index: 1111;
+}
+
+/* MIUI */
+.css-19z1ozs-MuiPaper-root-MuiAppBar-root {
+  background-color: #fdb813 !important;
+}
+
+.css-1191obr-MuiPaper-root-MuiAppBar-root {
+  background-color: #fdb813 !important;
+}
+
+.assignbutton {
+  padding: 0.25rem 0.5rem;
+  background: var(--theme-color);
+  color: white;
+  border-radius: 3px;
+}
+
+.assignbutton:hover {
+  background-color: white;
+  color: var(--theme-color);
+  transition: all 0.3s;
+  border: 0.7px solid var(--theme-color);
+}
+
+.accordion-button {
+  padding: 0.5rem 1.25rem;
+}
+
+.filter-btn-submit {
+  padding: 0.1em 5em;
+}
+.accordion-button:not(.collapsed) {
+  color: #000000;
+  background-color: #ffe29d;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 13%);
+}
+
+.filter-span-header {
+  font-size: 12px;
 }

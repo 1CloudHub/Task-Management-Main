@@ -30,7 +30,7 @@ function App() {
   }, []);
 
   const loginSuccess = (e) => {
-    // alert("called");
+    alert("called");
     console.log(e.profileObj);
     setUserDetails({
       username: e.profileObj.givenName,
