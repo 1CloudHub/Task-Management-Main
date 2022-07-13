@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import APIService from "../Services/APIService";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
+import { useForm } from "react-hook-form";
 
 function Newtask({ logoutClick, userDetails }) {
   const [category, setCategory] = useState([]);
@@ -16,6 +17,12 @@ function Newtask({ logoutClick, userDetails }) {
 
   const apiService = new APIService();
   let key = 0;
+  const {
+    register,
+    watch,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   useEffect(() => {
     apiService
       .request("category")
@@ -69,25 +76,38 @@ function Newtask({ logoutClick, userDetails }) {
       });
     setData((prevState) => ({ ...prevState, subCategory: key }));
   };
-  const [chars_left, setCharLeft] = useState(125);
+
+  const [chars_left_description, setCharsLeftDescription] = useState(125);
+  const [chars_left_subject, setCharsLeftSubject] = useState(125);
 
   const handleChangeData = ({ target: { name, value } }) => {
     setData((prevState) => ({ ...prevState, [name]: value }));
+  };
+
+  const handleChangeSubjectData = ({ target: { name, value } }) => {
+    setData((prevState) => ({ ...prevState, [name]: value }));
+
     const max_chars = 125;
-    setCharLeft(max_chars - value.length);
+    setCharsLeftSubject(max_chars - value.length);
+  };
+  const handleChangeDescriptionData = ({ target: { name, value } }) => {
+    setData((prevState) => ({ ...prevState, [name]: value }));
+    const max_chars = 125;
+    setCharsLeftDescription(max_chars - value.length);
   };
 
   const handleChangeFileData = ({ target: { name, files } }) => {
     setData((prevState) => ({ ...prevState, [name]: files[0] }));
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("---datax--");
-    console.log("submit clicked", data);
 
-    formref.current.reset();
-
-    toast.success("Submitted Successfully");
+  const onSubmit = (data) => {
+    if (data != null) {
+      console.log(data);
+      formref.current.reset();
+      toast.success("Submitted Successfully");
+    } else {
+      toast.error("Fill all required fields");
+    }
   };
 
   return (
@@ -97,7 +117,7 @@ function Newtask({ logoutClick, userDetails }) {
       <br />
       <div className="container main-container mb-5">
         <h5 className="themeColor"> Add New Task </h5>
-        <form ref={formref} onSubmit={handleSubmit}>
+        <form ref={formref} onSubmit={handleSubmit(onSubmit)}>
           <div className="row ">
             <div className="col-xs-12 col-sm-12 col-md-6  ">
               <div className="mt-2">
@@ -106,6 +126,7 @@ function Newtask({ logoutClick, userDetails }) {
                   name="category"
                   onChange={handleCategoryChange}
                   className="mt-2 form-control"
+                  {...register("category", { required: true })}
                 >
                   <option value="">Choose..</option>
                   {category &&
@@ -117,6 +138,9 @@ function Newtask({ logoutClick, userDetails }) {
                       );
                     })}
                 </select>
+                {errors.category && (
+                  <p className="text-danger"> Category is required</p>
+                )}
               </div>
               <div className="mt-2 ">
                 <label> Sub Category </label>
@@ -124,6 +148,7 @@ function Newtask({ logoutClick, userDetails }) {
                   name="subcategory"
                   onChange={handleSubCategoryChange}
                   className="mt-2 form-control"
+                  {...register("subcategory", { required: true })}
                 >
                   <option value="">Choose..</option>
                   {subCategoryOptions &&
@@ -135,6 +160,9 @@ function Newtask({ logoutClick, userDetails }) {
                       );
                     })}
                 </select>
+                {errors.subcategory && (
+                  <p className="text-danger"> Sub Category is required</p>
+                )}
               </div>
               <div className="mt-2">
                 <label> Sub Sub Category </label>
@@ -142,6 +170,7 @@ function Newtask({ logoutClick, userDetails }) {
                   name="subsubcategory"
                   className="mt-2 form-control"
                   onChange={handleChangeData}
+                  {...register("subsubcategory", { required: true })}
                 >
                   <option value="">Choose..</option>
                   {subSubCategoryOptions &&
@@ -153,18 +182,27 @@ function Newtask({ logoutClick, userDetails }) {
                       );
                     })}
                 </select>
+                {errors.subsubcategory && (
+                  <p className="text-danger"> Sub Sub Category is required</p>
+                )}
               </div>
               <div className="mt-1">
                 <label> Subject Line </label>
 
                 <textarea
                   name="description"
-                  onChange={handleChangeData}
                   className="form-control mt-1 "
+                  {...register("subjectLine", { required: true })}
+                  onChange={handleChangeSubjectData}
                 >
                   {" "}
                 </textarea>
-                <p className="charLeftClass">Characters Left: {chars_left}</p>
+                {errors.subjectLine && (
+                  <p className="text-danger"> Subject Line is required</p>
+                )}
+                <p className="charLeftClass">
+                  Characters Left: {chars_left_subject}
+                </p>
               </div>
             </div>
             <div className="col-xs-12 col-sm-12 col-md-6 ">
@@ -199,12 +237,18 @@ function Newtask({ logoutClick, userDetails }) {
                 <label> Description </label>
                 <textarea
                   name="description"
-                  onChange={handleChangeData}
+                  {...register("description", { required: true })}
+                  onChange={handleChangeDescriptionData}
                   className="form-control mt-1 "
                 >
                   {" "}
                 </textarea>
-                <p className="charLeftClass">Characters Left: {chars_left}</p>
+                {errors.description && (
+                  <p className="text-danger"> Description is required</p>
+                )}
+                <p className="charLeftClass">
+                  Characters Left: {chars_left_description}
+                </p>
               </div>
 
               <div className="mt-1">

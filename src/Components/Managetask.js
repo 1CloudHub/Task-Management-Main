@@ -4,6 +4,7 @@ import APIService from "../Services/APIService";
 import Footer from "./Footer";
 import MapComponent from "./MapComponent";
 import NavBar from "./Nav-bar";
+import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
 
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
@@ -117,6 +118,13 @@ function Managetask({ logoutClick, userDetails }) {
         console.log(error);
       });
   }, []);
+  const docs = [
+    { uri: "https://www.clickdimensions.com/links/TestPDFfile.pdf" },
+    { uri: "http://www.africau.edu/images/default/sample.pdf" },
+    {
+      uri: "https://i.picsum.photos/id/984/200/300.jpg?hmac=mLBN3lSvSl08Vh8Kw96TLY7v239gr1idtxVXvYFDkSc",
+    }, // Local File
+  ];
 
   return (
     <div>
@@ -204,8 +212,12 @@ function Managetask({ logoutClick, userDetails }) {
             <div className="mt-2">
               <label> Documents </label>
               <div className="border mt-1">
-                <ul> Doc1.pdf</ul>
-                <ul> note.wav</ul>
+                <DocViewer
+                  pluginRenderers={DocViewerRenderers}
+                  documents={docs}
+                />
+                {/* <ul> Doc1.pdf</ul>
+                <ul> note.wav</ul> */}
               </div>
             </div>
             <div className="mt-2">

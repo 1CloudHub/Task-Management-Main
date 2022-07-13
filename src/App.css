@@ -29,6 +29,7 @@ ul li {
 .googlebutton {
   min-height: 100vh;
   background: var(--theme-color);
+  /* background-image: url("/./.public/login-bg.jpg"); */
 }
 
 .bg-theme-color {
@@ -125,9 +126,9 @@ ul.d-flex.m-0.cursor-pointer li {
   cursor: pointer;
 }
 
-a#navbarScrollingDropdown {
+/* a#navbarScrollingDropdown {
   color: white !important;
-}
+} */
 
 .mobile-view {
   display: none;
@@ -291,5 +292,14 @@ button#dashboard-nav-tab-id-tab-list {
 }
 
 .footer-font {
-  font-size: small !important;
+  font-size: x-small !important;
+}
+.navbar-collapse {
+  flex-basis: 100%;
+  flex-grow: 0;
+  align-items: center;
+}
+
+.color-black {
+  color: black;
 }

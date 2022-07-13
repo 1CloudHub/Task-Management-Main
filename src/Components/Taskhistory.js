@@ -63,7 +63,9 @@ function Taskhistory({ logoutClick, userDetails }) {
                         </span>
                       </h5>
                       <p className="card-text mb-0">created by Rob</p>
-                      <small className="text-muted mb-0">Assigned to Rob</small>
+                      <small className="text-muted mb-0">
+                        Assigned to Mani
+                      </small>
                       <p className="card-text">
                         <small className="text-muted">
                           created on June 3rd 2022
