@@ -119,10 +119,8 @@ function Managetask({ logoutClick, userDetails }) {
       });
   }, []);
   const docs = [
-    { uri: "https://www.clickdimensions.com/links/TestPDFfile.pdf" },
-    { uri: "http://www.africau.edu/images/default/sample.pdf" },
     {
-      uri: "https://i.picsum.photos/id/984/200/300.jpg?hmac=mLBN3lSvSl08Vh8Kw96TLY7v239gr1idtxVXvYFDkSc",
+      uri: "https://i.picsum.photos/id/0/5616/3744.jpg?hmac=3GAAioiQziMGEtLbfrdbcoenXoWAW-zlyEAMkfEdBzQ",
     }, // Local File
   ];
 

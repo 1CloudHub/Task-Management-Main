@@ -71,37 +71,104 @@ function TableList() {
   ];
   const { SearchBar, ClearSearchButton } = Search;
 
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([
+    {
+      id: 1,
+      category: "Interest",
+      subCatagory: "Personal",
+      subSubCatagory: "Male",
+      subject: "Loan Type",
+      taskStatus: "In Progress",
+      createdOn: "24 Jan 2021",
+      createdBy: "Ram",
+      assignedTo: "Paul",
+    },
+    {
+      id: 2,
+      category: "Home",
+      subCatagory: "Personal",
+      subSubCatagory: "Female",
+      subject: "Loan Type",
+      taskStatus: "In Progress",
+      createdOn: "24 Jan 2021",
+      createdBy: "Ram",
+      assignedTo: "Paul",
+    },
+    {
+      id: 3,
+      category: "Money",
+      subCatagory: "Home",
+      subSubCatagory: "Male",
+      subject: "Loan Type",
+      taskStatus: "Completed",
+      createdOn: "2 Feb 2021",
+      createdBy: "John",
+      assignedTo: "Richie",
+    },
+    {
+      id: 4,
+      category: "CAR",
+      subCatagory: "Appliances",
+      subSubCatagory: "Male",
+      subject: "Car Loan Type",
+      taskStatus: "Completed",
+      createdOn: "2 Feb 2021",
+      createdBy: "Suresh",
+      assignedTo: "Oliver",
+    },
+    {
+      id: 5,
+      category: "Bike",
+      subCatagory: "Appliances",
+      subSubCatagory: "Female",
+      subject: "Bike Loan Type",
+      taskStatus: "Completed",
+      createdOn: "2 mar 2021",
+      createdBy: "Drake",
+      assignedTo: "Oliver",
+    },
+    {
+      id: 6,
+      category: "Apartment",
+      subCatagory: "Home",
+      subSubCatagory: "Female",
+      subject: "Home Loan ",
+      taskStatus: "Completed",
+      createdOn: "2 mar 2021",
+      createdBy: "Drake",
+      assignedTo: "Oliver",
+    },
+  ]);
   const [taskStatus, setTaskStatus] = useState([]);
-  useEffect(() => {
-    apiService
-      .request("category")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setCategory(data);
-      })
-      .catch(() => {});
-    apiService
-      .request("dashboardTableData")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setData(data);
-      })
-      .catch(() => {});
-    apiService
-      .request("taskStatus")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setTaskStatus(data);
-      })
-      .catch(() => {});
-  }, []);
+  // useEffect(() => {
+  //   apiService
+  //     .request("category")
+  //     .then((response) => {
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       setCategory(data);
+  //     })
+  //     .catch(() => {});
+  //   apiService
+  //     .request("dashboardTableData")
+  //     .then((response) => {
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       setData(data);
+  //     })
+  //     .catch(() => {});
+  //   apiService
+  //     .request("taskStatus")
+  //     .then((response) => {
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       setTaskStatus(data);
+  //     })
+  //     .catch(() => {});
+  // }, []);
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
     key = selectedValue.target.value;

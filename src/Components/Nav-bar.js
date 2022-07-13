@@ -66,7 +66,7 @@ function NavBar({
 
   return (
     <div>
-      <Navbar className="nav-height" fixed="top" bg="light" expand="lg">
+      <Navbar className="shadow" fixed="top" bg="light" expand="lg">
         <Container fluid>
           <Navbar.Brand href="#">
             <Link to="/Dashboard">
