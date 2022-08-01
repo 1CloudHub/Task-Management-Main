@@ -9,6 +9,8 @@ import { AiFillEdit, AiOutlineHistory } from "react-icons/ai";
 import { BsCalendar } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import APIService from "../Services/APIService";
+import { Card } from "react-bootstrap";
+import { FaCircle } from "react-icons/fa";
 
 function TableList({ response }) {
   console.log("response", response);
@@ -148,7 +150,7 @@ function TableList({ response }) {
     },
   ]);
   const [taskStatus, setTaskStatus] = useState([]);
-
+  const tableHandlerClass = "tableHandler";
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
     key = selectedValue.target.value;
@@ -161,70 +163,43 @@ function TableList({ response }) {
       <div className="container-fluid ">
         <div className="container"></div>
         <br />
-        {response && (
-          <ToolkitProvider
-            keyField="id"
-            data={response.data.getFilteredTasks}
-            columns={columns}
-            search
-          >
-            {(props) => (
+        <div className={tableHandlerClass}>
+          {data.map((item, index) => {
+            return (
               <>
-                <div className="d-flex justify-content-between mb-1">
-                  <h5>Table List </h5>
-                  <div className="d-flex">
-                    <SearchBar
-                      placeholder="search.."
-                      className="mr-3  "
-                      {...props.searchProps}
-                    />{" "}
-                    &nbsp;
-                    <div className="clear-button">
-                      <ClearSearchButton
-                        className="btn btn-clr rounded-0 text-small font-size-small"
-                        {...props.searchProps}
-                      />
+                <div key={index}>
+                  <Card className="p-2">
+                    <div>
+                      {" "}
+                      <b> {item.subject}</b>
                     </div>
-                  </div>
+
+                    <div>
+                      {" "}
+                      {item.createdBy} + {item.assignedTo}{" "}
+                    </div>
+
+                    <div> {item.createdOn} </div>
+
+                    <div>
+                      {" "}
+                      {item.taskStatus == "Completed" ? (
+                        <FaCircle style={{ color: "green", float: "right" }} />
+                      ) : (
+                        (item.taskStatus = "In Progress" ? (
+                          <FaCircle style={{ color: "blue", float: "right" }} />
+                        ) : (
+                          ""
+                        ))
+                      )}{" "}
+                    </div>
+                  </Card>
                 </div>
-                <BootstrapTable
-                  keyField="id"
-                  striped={false}
-                  bordered={false}
-                  condensed={true}
-                  hover={true}
-                  classes="mobile-responsive table-responsive "
-                  rowClasses={"cursor-pointer"}
-                  {...props.baseProps}
-                  pagination={paginationFactory({
-                    sizePerPage: 5,
-                    showTotal: true,
-                    // paginationSize: 5,
-                    sizePerPageList: [
-                      {
-                        text: "5",
-                        value: 5,
-                      },
-                      {
-                        text: "10",
-                        value: 10,
-                      },
-                      {
-                        text: "20",
-                        value: 20,
-                      },
-                      {
-                        text: "All",
-                        value: data.length,
-                      },
-                    ],
-                  })}
-                  noDataIndication={"No Data"}
-                />
               </>
-            )}
-          </ToolkitProvider>
-        )}
+            );
+          })}
+        </div>
+
         <br />
         <br />
         {/* <br />

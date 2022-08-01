@@ -19,36 +19,57 @@ import Managetask from "./Components/Managetask";
 import Newtask from "./Components/Newtask";
 import SearchList from "./Components/SearchList";
 import Taskhistory from "./Components/Taskhistory";
+import { useQuery, gql } from "@apollo/client";
+
+const GETUSERIDBBYEMAIL_QUERY = gql`
+  query USERIDBYEMAIL($emailAddress: String!) {
+    getUser(emailAddress: $emailAddress) {
+      userId
+      emailAddress
+    }
+  }
+`;
 
 function App() {
   const navigate = useNavigate();
   const [currentURL, setCurrentUrl] = useState("");
 
-  const [userDetails, setUserDetails] = useState({ username: "", email: "" });
+  const [userDetails, setUserDetails] = useState({
+    username: "",
+    email: "",
+    userId: "",
+  });
   useEffect(() => {
     setCurrentUrl(window.location.pathname);
   }, []);
 
   const loginSuccess = (e) => {
-    alert("called");
     console.log(e.profileObj);
     setUserDetails({
       username: e.profileObj.givenName,
       email: e.profileObj.email,
     });
-
+    console.log(userDetails);
+    localStorage.setItem("userDetail", JSON.stringify(userDetails));
     // setIsLoginSuccess(true);
     if (currentURL === "/") {
-      navigate("/Dashboard");
+      navigate("/MyTask");
     } else {
       navigate(currentURL);
     }
   };
+  const getUserIDbyEmail = useQuery(GETUSERIDBBYEMAIL_QUERY, {
+    variables: {
+      emailAddress: "raja.s@newgen.co",
+      // emailAddress:userName.email
+    },
+  });
+  console.log(getUserIDbyEmail);
+  let userId = getUserIDbyEmail.data && getUserIDbyEmail.data.getUser.userId;
+
+  localStorage.setItem("userId", userId);
 
   const onLogoutSuccess = () => {
-    // alert("logout called");
-    // setIsLoginSuccess(false);
-    // setShowLogoutMessage(true);
     navigate("/");
   };
   const onFailure = (e) => {
@@ -62,10 +83,14 @@ function App() {
     <>
       {isloginSuccess ? (
         <Routes>
-          <Route path="/" exact element={<GoogleAuth />} />
+          <Route
+            path="/"
+            exact
+            element={<GoogleAuth loginSuccess={loginSuccess} />}
+          />
           {/* <Route path="/" exact element={<Login />} /> */}
           <Route
-            path="/Dashboard"
+            path="/MyTask"
             exact
             element={
               <Dashboard

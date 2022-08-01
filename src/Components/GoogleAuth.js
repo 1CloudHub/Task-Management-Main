@@ -3,12 +3,11 @@ import { GoogleLogin } from "react-google-login";
 import { useNavigate } from "react-router-dom";
 // import { GoogleLogin } from "@react-oauth/google";
 
-function GoogleAuth() {
+function GoogleAuth({ loginSuccess }) {
   const navigate = useNavigate();
-  const loginSuccess = () => {
-    // alert("success");
-    navigate("/Dashboard");
-  };
+  // const loginSuccess = (e) => {
+
+  // };
   return (
     <>
       <div className="  googlebutton">

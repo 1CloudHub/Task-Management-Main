@@ -190,6 +190,7 @@ ul.cursor-pointer.m-0.nav-ul-lg li a {
 
 .dashboard-tabs li button {
   padding: 0.75em 10em;
+  background-color: #ffe29d !important;
 }
 
 button#dashboard-nav-tab-id-tab-graph,
@@ -200,11 +201,15 @@ button#dashboard-nav-tab-id-tab-list {
 .nav-tabs .nav-item.show .nav-link,
 .nav-tabs .nav-link.active {
   color: #495057;
-  background-color: #fff;
+  /* background-color: #fff; */
+  background-color: #ffe29d !important;
   border: none;
   border-bottom: 4px solid #fdb813;
 }
 
+ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
+  background-color: #ffe29d !important;
+}
 .nav-link {
   color: #21252973;
 }
@@ -229,6 +234,9 @@ button#dashboard-nav-tab-id-tab-list {
   }
   .dashboard-tabs li button {
     padding: 0.55em 2em;
+  }
+  .show-mobile-icons {
+    display: block;
   }
 }
 
@@ -290,6 +298,9 @@ button#dashboard-nav-tab-id-tab-list {
   color: black;
   margin-bottom: 0;
 }
+.show-mobile-icons {
+  display: none;
+}
 
 @media only screen and (max-width: 500px) {
   /* .mobile-responsive {
@@ -305,6 +316,20 @@ button#dashboard-nav-tab-id-tab-list {
 
   .center-align {
     text-align: center;
+  }
+
+  .show-mobile-icons {
+    display: block;
+  }
+  .mobile-icons {
+    margin-right: 0.5rem;
+    color: black;
+    font-size: 1rem;
+  }
+  .navbar-light .navbar-text {
+    color: rgba(0, 0, 0, 0.55);
+    position: relative;
+    left: 22%;
   }
 }
 
@@ -382,4 +407,39 @@ button#dashboard-nav-tab-id-tab-list {
 
 .filter-span-header {
   font-size: 12px;
+}
+
+.document-viewer {
+  height: 50vh;
+  overflow-y: auto;
+}
+
+nav {
+  z-index: 11111;
+}
+
+.css-1s2u09g-control {
+  border-radius: 0px !important;
+}
+
+.navbar-light .navbar-toggler-icon {
+  /*   background-image: url(data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 30 30%27%3e%3cpath stroke=%27rgba%280, 0, 0, 0.55%29%27 stroke-linecap=%27round%27 stroke-miterlimit=%2710%27 stroke-width=%272%27 d=%27M4 7h22M4 15h22M4 23h22%27/%3e%3c/svg%3e); */
+  background-image: url("https://cdn1.iconfinder.com/data/icons/jumpicon-basic-ui-glyph-1/32/-_Dot-More-Vertical-Menu-1024.png") !important;
+}
+.float {
+  position: fixed;
+  width: 50px;
+  height: 50px;
+  bottom: 80px;
+  right: 40px;
+  background-color: #fdb713ff;
+  color: #fff;
+  border-radius: 50px;
+  text-align: center;
+  box-shadow: 2px 2px 3px #999;
+}
+
+.dashBoardPlusIcon {
+  color: #ffffff;
+  font-size: 20px;
 }

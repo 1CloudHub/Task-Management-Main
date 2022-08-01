@@ -19,14 +19,19 @@ import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import Logout from "./Logout";
 
-function NavBar({
-  logoutClick,
-  userDetails = { username: "user", email: "email@1cloudhub.com" },
-}) {
+import { FiPieChart } from "react-icons/fi";
+import { FaChartPie, FaList } from "react-icons/fa";
+import { FaPaperclip } from "react-icons/fa";
+
+function NavBar({ logoutClick }) {
   const navigateTo = useNavigate();
   const logout = () => {
     navigateTo("/");
   };
+
+  let userDetails = localStorage.getItem("userDetail");
+  userDetails = JSON.parse(userDetails);
+  console.log(userDetails);
 
   const [isMobileView, setIsMobileView] = useState(false);
 
@@ -35,7 +40,7 @@ function NavBar({
       id: 1,
       itemName: "Dashboard",
       itemImage: <MdDashboard className="mb-1 " />,
-      url: "/Dashboard",
+      url: "/MyTask",
     },
     {
       id: 2,
@@ -63,21 +68,56 @@ function NavBar({
       navigateTo("/SearchList");
     }
   };
+  const [showGraphIcon, setShowGraphIcon] = useState(true);
 
   return (
     <div>
       <Navbar className="shadow" fixed="top" bg="light" expand="lg">
         <Container fluid>
-          <Navbar.Brand href="#">
-            <Link to="/Dashboard">
-              <img
-                src="svasti_navlogo-nobg.png"
-                className="nav-logo"
-                alt="Logo"
-              />
-            </Link>
+          <Navbar.Brand>
+            {window.location.pathname == "/MyTask" ? (
+              <h6 className="ml-10 mt-2">
+                {" "}
+                <strong> : : MY TASKS </strong>{" "}
+              </h6>
+            ) : window.location.pathname == "/AddTask" ? (
+              <h6 className="ml-10 mt-2">
+                {" "}
+                :: <strong>CREATE TASK</strong>{" "}
+              </h6>
+            ) : (
+              ""
+            )}
           </Navbar.Brand>
+          <Navbar.Text className="show-mobile-icons">
+            {window.location.pathname == "/MyTask" ? (
+              //  onClick={scrollToGraph}
+              showGraphIcon ? (
+                <span className="mobile-icons">
+                  <FiPieChart className="" />
+                </span>
+              ) : (
+                <span className="mobile-icons">
+                  <FaList />
+                  {/* onClick={scrollToList} */}
+                </span>
+              )
+            ) : window.location.pathname == "/AddTask" ? (
+              <span className="mobile-icons">
+                <FaPaperclip />
+              </span>
+            ) : (
+              // onClick={fileAttachId}
+              ""
+            )}
+            <span className="mobile-icons">
+              <FiSearch className="" />
+            </span>
+            &nbsp;
+          </Navbar.Text>
+
           <Navbar.Toggle aria-controls="navbarScroll" />
+
           <Navbar.Collapse id="navbarScroll">
             <Form className="d-flex">
               <div className="input-group ">
@@ -119,11 +159,9 @@ function NavBar({
 
               <NavDropdown title={<CgProfile />} id="navbarScrollingDropdown">
                 <NavDropdown.Item key="1">
-                  {userDetails.username}User
+                  {userDetails.username}
                 </NavDropdown.Item>
-                <NavDropdown.Item key="2">
-                  {userDetails.email}user@1cloudhub.com
-                </NavDropdown.Item>
+                <NavDropdown.Item key="2">{userDetails.email}</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item key="3">
                   <Logout logoutClick={logoutClick} />

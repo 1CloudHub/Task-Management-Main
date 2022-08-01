@@ -4,77 +4,17 @@ import React, { useEffect, useState } from "react";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { toast } from "react-toastify";
 
-function MapComponent({ getLat }) {
-  const [position, setPosition] = useState({
-    lat: 0,
-    lng: 0,
-  });
-  useEffect(() => {
-    getPosition();
-  }, []);
-  const [mapError, setMapError] = useState(false);
-  const [mapErrorTxt, setMapErrorTxt] = useState(false);
-
-  // to show the error message
-  const showError = (error) => {
-    console.log("showError", error);
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        toast.warn("You denied the request for your location.");
-        setMapError(true);
-        setMapErrorTxt("Permission Denied for Location");
-        break;
-      case error.POSITION_UNAVAILABLE:
-        toast.warn("Your Location information is unavailable.");
-        setMapError(true);
-        setMapErrorTxt("Location is Unavailable");
-        break;
-      case error.TIMEOUT:
-        toast.warn("Your request timed out. Please try again");
-        setMapErrorTxt("Request Time Out");
-        setMapError(true);
-        break;
-      case error.UNKNOWN_ERROR:
-        toast.warn(
-          "An unknown error occurred please try again after some time."
-        );
-        setMapErrorTxt("Unknown Error occured !");
-        setMapError(true);
-        break;
-    }
-  };
-  // to get the lat and long
-  const displayLocation = (e) => {
-    console.log(e.coords.latitude);
-    const latitude = e.coords.latitude;
-    const longitude = e.coords.longitude;
-    console.log(latitude, longitude);
-    setPosition({ lat: latitude, lng: longitude });
-    console.log(position);
-  };
-
-  const getPosition = () => {
-    navigator.geolocation.getCurrentPosition(
-      displayLocation,
-      showError,
-      options
-    );
-  };
+function MapComponent({ mapError, position, mapErrorTxt }) {
   const containerStyle = {
-    width: "400px",
-    height: "400px",
+    width: "30vw",
+    height: "55vh",
     borderRadius: "30em",
-  };
-  const options = {
-    enableHighAccuracy: true,
   };
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: "AIzaSyBs7rvWtf9wbCNzqG4LPfpxM4AQH5wVm1o",
   });
-  // console.log(out);
-  // The marker, positioned at Uluru
 
   return isLoaded && mapError == false ? (
     <GoogleMap
