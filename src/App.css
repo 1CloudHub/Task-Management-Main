@@ -2,10 +2,14 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Varela Round", Arial, sans-serif;
+  /* font-family: "Varela Round", Arial, sans-serif; */
+  font-family: "Roboto";
 }
 ul {
   margin: 0;
+}
+label {
+  font-size: 12px;
 }
 
 a {
@@ -48,11 +52,18 @@ ul li {
   min-height: 100vh;
 }
 
+label {
+  font-size: 12px;
+}
+
 .form-control {
   /* border: 1px solid var(--theme-color) !important; */
   border-radius: 0 !important;
   padding: 0.1rem 0.55rem;
   font-size: small;
+  border-top: none;
+  border-right: none;
+  border-left: 0;
 }
 
 .form-control:focus {
@@ -442,4 +453,32 @@ nav {
 .dashBoardPlusIcon {
   color: #ffffff;
   font-size: 20px;
+}
+
+.card-bg {
+  background: #efefefff;
+}
+
+.MyTaskStatusCircleInprogress {
+  float: right;
+
+  font-size: 23px;
+
+  color: #93c47dff !important;
+}
+
+.MyTaskStatusCircleDuePast {
+  float: right;
+
+  font-size: 23px;
+
+  color: #ff0000ff;
+}
+
+.MyTaskStatusCircleNew {
+  float: right;
+
+  font-size: 23px;
+
+  color: #6d9eebff;
 }

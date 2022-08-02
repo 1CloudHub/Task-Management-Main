@@ -103,7 +103,7 @@ function Newtask({ logoutClick, userDetails }) {
   const [popUpImage, setPopUpImage] = useState();
   const [showViewDocPopup, setShowViewDocPopup] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState();
-  const [chars_left_description, setCharsLeftDescription] = useState(125);
+  const [chars_left_description, setCharsLeftDescription] = useState(200);
   const [chars_left_subject, setCharsLeftSubject] = useState(125);
   const [data, setData] = useState();
   const [mapError, setMapError] = useState(false);
@@ -265,11 +265,41 @@ function Newtask({ logoutClick, userDetails }) {
 
       <br />
       <div className="container main-container mb-5">
-        <h5 className="themeColor"> Add New Task </h5>
         <div>
           <form ref={formref} onSubmit={handleSubmit(onSubmit)}>
             <div className="row ">
               <div className="col-xs-12 col-sm-12 col-md-6  ">
+                <div className="mt-2">
+                  <label className="asterisk_input"> Title </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="title"
+                    {...register("subjectLine", { required: true })}
+                    onChange={handleChangeSubjectData}
+                  />
+
+                  {errors.subjectLine && (
+                    <p className="text-danger"> Title is required</p>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <label className="asterisk_input"> Description </label>
+                  <textarea
+                    name="description"
+                    {...register("description", { required: true })}
+                    onChange={handleChangeDescriptionData}
+                    className="form-control mt-2 "
+                  >
+                    {" "}
+                  </textarea>
+                  {errors.description && (
+                    <p className="text-danger"> Description is required</p>
+                  )}
+                  <p className="charLeftClass">
+                    Characters Left: {chars_left_description}
+                  </p>
+                </div>
                 <div className="mt-2">
                   <label className="asterisk_input"> Category </label>
                   <select
@@ -364,23 +394,6 @@ function Newtask({ logoutClick, userDetails }) {
                     )}
                   </select>
                 </div>
-                <div className="mt-1">
-                  <label className="asterisk_input"> Subject Line </label>
-
-                  <textarea
-                    name="description"
-                    className="form-control mt-1 "
-                    {...register("subjectLine", { required: true })}
-                    onChange={handleChangeSubjectData}
-                  />
-
-                  {errors.subjectLine && (
-                    <p className="text-danger"> Subject Line is required</p>
-                  )}
-                  <p className="charLeftClass">
-                    Characters Left: {chars_left_subject}
-                  </p>
-                </div>
 
                 <div className="mt-2">
                   <label className="asterisk_input"> Handler </label>
@@ -434,23 +447,7 @@ function Newtask({ logoutClick, userDetails }) {
                     isMulti
                   />
                 </div>
-                <div className="mt-2">
-                  <label className="asterisk_input"> Description </label>
-                  <textarea
-                    name="description"
-                    {...register("description", { required: true })}
-                    onChange={handleChangeDescriptionData}
-                    className="form-control mt-2 "
-                  >
-                    {" "}
-                  </textarea>
-                  {errors.description && (
-                    <p className="text-danger"> Description is required</p>
-                  )}
-                  <p className="charLeftClass">
-                    Characters Left: {chars_left_description}
-                  </p>
-                </div>
+
                 <div className="mt-1">
                   <label className="marginRight1 mt-1">
                     {" "}

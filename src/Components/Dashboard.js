@@ -1,5 +1,5 @@
 import { React, useState } from "react";
-import { Tab, Tabs } from "react-bootstrap";
+import { Card, Tab, Tabs } from "react-bootstrap";
 import Footer from "./Footer";
 import Graphs from "./Graphs/Graphs";
 import AppNavBar from "./MIUI/AppNavBar";
@@ -10,7 +10,7 @@ import { useQuery, gql } from "@apollo/client";
 import CreatorTableList from "./Graphs/CreatorTableList";
 import WatcherTableList from "./WatcherTableList";
 import { getUser } from "react-oidc-client";
-import { FaPlus, FaFilter, FaSortAmountDown } from "react-icons/fa";
+import { FaPlus, FaFilter, FaSortAmountDown, FaCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import CardList from "./CardList";
 import Accordion from "react-bootstrap/Accordion";
@@ -124,9 +124,6 @@ function Dashboard({ logoutClick, userDetails }) {
 
       <div className="main-container">
         <div className="container-fluid">
-          <div className="marginLeft5">
-            <h5 className="themeColor"> Dashboard </h5>
-          </div>
           <Tabs
             defaultActiveKey="handle"
             id="dashboard-nav-tab-id"
@@ -136,7 +133,15 @@ function Dashboard({ logoutClick, userDetails }) {
               {forHandlerResponse.data && (
                 <>
                   <div className="row d-flex">
-                    <div className="col-xs-6 col-sm-6 col-md-8 col-lg-8">
+                    <div className="filters-sorting">
+                      {/* <div className="d-flex">
+                        <span className="ml-1">
+                          <FaFilter />
+                        </span>
+                        <FaSortAmountDown />
+                      </div> */}
+                    </div>
+                    <div className="col-xs-12 col-sm-12 col-md-11 col-lg-11">
                       <Accordion>
                         <Accordion.Item eventKey="0">
                           <Accordion.Header>
@@ -226,26 +231,409 @@ function Dashboard({ logoutClick, userDetails }) {
                         </Accordion.Item>
                       </Accordion>
                     </div>
-                    <div className="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-                      <FaSortAmountDown />
+                    <div className="col-xs-12 col-sm-12 col-md-1 col-lg-1">
+                      <span className="btn d-flex justify-content-center card p-2">
+                        <FaSortAmountDown />
+                      </span>
                     </div>
                   </div>
                   <br />
-                  <CardList />
-                  <TableList response={forHandlerResponse} />
+                  <div>
+                    {forHandlerResponse.data.getFilteredTasks.map(
+                      (item, index) => {
+                        return (
+                          <>
+                            <div key={index}>
+                              {" "}
+                              <div className="row">
+                                {/* <div className=" "> */}
+                                {/* {index < 5 ? ( */}
+                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                    <div className="d-flex">
+                                      {" "}
+                                      <div className="w-75 ml-2">
+                                        {" "}
+                                        <div>
+                                          {" "}
+                                          <b> {item.title}</b>
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          {item.createdBy} +{" "}
+                                          {item.currentAssignee}{" "}
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          <b> Due : </b>{" "}
+                                          {item.dueDate &&
+                                            item.dueDate.formatString}{" "}
+                                        </div>{" "}
+                                      </div>
+                                      <div className="floatRight mt-4">
+                                        <div>
+                                          {" "}
+                                          {item.status == "Due Past" ? (
+                                            <FaCircle className="MyTaskStatusCircleDuePast" />
+                                          ) : item.status == "InProgress" ? (
+                                            <FaCircle className="MyTaskStatusCircleInprogress" />
+                                          ) : item.status == "New" ? (
+                                            <FaCircle className="MyTaskStatusCircleNew" />
+                                          ) : (
+                                            ""
+                                          )}{" "}
+                                        </div>
+                                      </div>{" "}
+                                    </div>{" "}
+                                  </Card>
+                                </div>
+                                {/* ) : ( */}
+                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                    <div className="d-flex">
+                                      {" "}
+                                      <div className="w-75 ml-2">
+                                        {" "}
+                                        <div>
+                                          {" "}
+                                          <b> {item.title}</b>
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          {item.createdBy} +{" "}
+                                          {item.currentAssignee}{" "}
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          <b> Due : </b>{" "}
+                                          {item.dueDate &&
+                                            item.dueDate.formatString}{" "}
+                                        </div>{" "}
+                                      </div>
+                                      <div className="floatRight mt-4">
+                                        <div>
+                                          {" "}
+                                          {item.taskStatus == "Due Past" ? (
+                                            <FaCircle className="MyTaskStatusCircleDuePast" />
+                                          ) : item.taskStatus ==
+                                            "InProgress" ? (
+                                            <FaCircle className="MyTaskStatusCircleInprogress" />
+                                          ) : item.taskStatus == "New" ? (
+                                            <FaCircle className="MyTaskStatusCircleNew" />
+                                          ) : (
+                                            ""
+                                          )}{" "}
+                                        </div>
+                                      </div>{" "}
+                                    </div>{" "}
+                                  </Card>
+                                </div>
+                                {/* )}{" "} */}
+                                {/* </div> */}
+                                {/* <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
+                                <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                  <div className="d-flex">
+                                    {" "}
+                                    <div className="w-75 ml-2">
+                                      {" "}
+                                      <div>
+                                        {" "}
+                                        <b> {item.subject}</b>
+                                      </div>
+                                      <div>
+                                        {" "}
+                                        {item.createdBy} + {item.assignedTo}{" "}
+                                      </div>
+                                      <div>
+                                        {" "}
+                                        <b> Due : </b> {item.createdOn}{" "}
+                                      </div>{" "}
+                                    </div>
+                                    <div className="floatRight mt-4">
+                                      <div>
+                                        {" "}
+                                        {item.taskStatus == "Due Past" ? (
+                                          <FaCircle className="MyTaskStatusCircleDuePast" />
+                                        ) : item.taskStatus == "InProgress" ? (
+                                          <FaCircle className="MyTaskStatusCircleInprogress" />
+                                        ) : item.taskStatus == "New" ? (
+                                          <FaCircle className="MyTaskStatusCircleNew" />
+                                        ) : (
+                                          ""
+                                        )}{" "}
+                                      </div>
+                                    </div>{" "}
+                                  </div>{" "}
+                                </Card>{" "}
+                              </div> */}
+                              </div>
+                            </div>{" "}
+                          </>
+                        );
+                      }
+                    )}
+                  </div>
+                  {/* <CardList /> */}
+                  {/* <TableList response={forHandlerResponse} /> */}
                   <Graphs response={forHandlerResponse} />
                 </>
               )}
             </Tab>
             <Tab eventKey="watch" title="Watcher">
-              <TableList columns={""} />
-              <Graphs />
+              {/* <TableList columns={""} /> */}
+              {/* <Graphs /> */}
 
-              <WatcherTableList />
+              {/* <WatcherTableList /> */}
             </Tab>
             <Tab eventKey="create" title="Creator">
-              <CreatorTableList />
-              <Graphs />
+              {forHandlerResponse.data && (
+                <>
+                  <div className="row d-flex">
+                    <div className="filters-sorting">
+                      {/* <div className="d-flex">
+                        <span className="ml-1">
+                          <FaFilter />
+                        </span>
+                        <FaSortAmountDown />
+                      </div> */}
+                    </div>
+                    <div className="col-xs-12 col-sm-12 col-md-11 col-lg-11">
+                      <Accordion>
+                        <Accordion.Item eventKey="0">
+                          <Accordion.Header>
+                            <FaFilter />
+                          </Accordion.Header>
+                          <Accordion.Body>
+                            <div className="row">
+                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                <label className=" w-100">
+                                  {" "}
+                                  <span className="filter-span-header">
+                                    Start Date
+                                  </span>
+                                  <div className="d-flex form-control cursor-pointer ">
+                                    <ReactDatePicker
+                                      type="text"
+                                      name="fromDate"
+                                      className="datePickerField col-lg-12 border-0 "
+                                      dateFormat="dd-MM-yyyy"
+                                      selected={startDate}
+                                      placeholderText="start date"
+                                      onChange={(date) => setStartDate(date)}
+                                    />
+                                    <BsCalendar className="mt-1" />
+                                  </div>
+                                </label>
+                              </div>
+                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                <label className="w-100">
+                                  {" "}
+                                  <span className="filter-span-header">
+                                    End Date
+                                  </span>
+                                  <div className="d-flex form-control cursor-pointer ">
+                                    <ReactDatePicker
+                                      type="text"
+                                      name="fromDate"
+                                      className="datePickerField col-lg-12 border-0 "
+                                      dateFormat="dd-MM-yyyy"
+                                      minDate={startDate}
+                                      selected={endDate}
+                                      placeholderText="end date"
+                                      onChange={(date) => setEndDate(date)}
+                                    />
+                                    <BsCalendar className="mt-1" />
+                                  </div>
+                                </label>
+                              </div>
+                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                <label>
+                                  <span className="filter-span-header">
+                                    Category
+                                  </span>{" "}
+                                </label>
+                                <select
+                                  onChange={handleCategoryChange}
+                                  className=" form-control"
+                                >
+                                  <option value="">All</option>
+                                  {categoryResponse.data &&
+                                    categoryResponse.data.getCategories.map(
+                                      (item, index) => {
+                                        return (
+                                          <option
+                                            key={index}
+                                            value={item.categoryId}
+                                          >
+                                            {item.name}
+                                          </option>
+                                        );
+                                      }
+                                    )}
+                                </select>
+                              </div>
+                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                                <div className="text-center pt-3">
+                                  <button
+                                    type="submit"
+                                    className="btn btn-clr rounded-0 filter-btn-submit"
+                                  >
+                                    submit
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
+                    </div>
+                    <div className="col-xs-12 col-sm-12 col-md-1 col-lg-1">
+                      <span className="btn d-flex justify-content-center card p-2">
+                        <FaSortAmountDown />
+                      </span>
+                    </div>
+                  </div>
+                  <br />
+                  <div>
+                    {forCreatorResponse.data.getFilteredTasks.map(
+                      (item, index) => {
+                        return (
+                          <>
+                            <div key={index}>
+                              {" "}
+                              <div className="row">
+                                {/* <div className=" "> */}
+                                {/* {index < 5 ? ( */}
+                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                    <div className="d-flex">
+                                      {" "}
+                                      <div className="w-75 ml-2">
+                                        {" "}
+                                        <div>
+                                          {" "}
+                                          <b> {item.title}</b>
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          {item.createdBy} +{" "}
+                                          {item.currentAssignee}{" "}
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          <b> Due : </b>{" "}
+                                          {item.dueDate &&
+                                            item.dueDate.formatString}{" "}
+                                        </div>{" "}
+                                      </div>
+                                      <div className="floatRight mt-4">
+                                        <div>
+                                          {" "}
+                                          {item.status == "Due Past" ? (
+                                            <FaCircle className="MyTaskStatusCircleDuePast" />
+                                          ) : item.status == "InProgress" ? (
+                                            <FaCircle className="MyTaskStatusCircleInprogress" />
+                                          ) : item.status == "New" ? (
+                                            <FaCircle className="MyTaskStatusCircleNew" />
+                                          ) : (
+                                            ""
+                                          )}{" "}
+                                        </div>
+                                      </div>{" "}
+                                    </div>{" "}
+                                  </Card>
+                                </div>
+                                {/* ) : ( */}
+                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                    <div className="d-flex">
+                                      {" "}
+                                      <div className="w-75 ml-2">
+                                        {" "}
+                                        <div>
+                                          {" "}
+                                          <b> {item.title}</b>
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          {item.createdBy} +{" "}
+                                          {item.currentAssignee}{" "}
+                                        </div>
+                                        <div>
+                                          {" "}
+                                          <b> Due : </b>{" "}
+                                          {item.dueDate &&
+                                            item.dueDate.formatString}{" "}
+                                        </div>{" "}
+                                      </div>
+                                      <div className="floatRight mt-4">
+                                        <div>
+                                          {" "}
+                                          {item.taskStatus == "Due Past" ? (
+                                            <FaCircle className="MyTaskStatusCircleDuePast" />
+                                          ) : item.taskStatus ==
+                                            "InProgress" ? (
+                                            <FaCircle className="MyTaskStatusCircleInprogress" />
+                                          ) : item.taskStatus == "New" ? (
+                                            <FaCircle className="MyTaskStatusCircleNew" />
+                                          ) : (
+                                            ""
+                                          )}{" "}
+                                        </div>
+                                      </div>{" "}
+                                    </div>{" "}
+                                  </Card>
+                                </div>
+                                {/* )}{" "} */}
+                                {/* </div> */}
+                                {/* <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
+                                <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
+                                  <div className="d-flex">
+                                    {" "}
+                                    <div className="w-75 ml-2">
+                                      {" "}
+                                      <div>
+                                        {" "}
+                                        <b> {item.subject}</b>
+                                      </div>
+                                      <div>
+                                        {" "}
+                                        {item.createdBy} + {item.assignedTo}{" "}
+                                      </div>
+                                      <div>
+                                        {" "}
+                                        <b> Due : </b> {item.createdOn}{" "}
+                                      </div>{" "}
+                                    </div>
+                                    <div className="floatRight mt-4">
+                                      <div>
+                                        {" "}
+                                        {item.taskStatus == "Due Past" ? (
+                                          <FaCircle className="MyTaskStatusCircleDuePast" />
+                                        ) : item.taskStatus == "InProgress" ? (
+                                          <FaCircle className="MyTaskStatusCircleInprogress" />
+                                        ) : item.taskStatus == "New" ? (
+                                          <FaCircle className="MyTaskStatusCircleNew" />
+                                        ) : (
+                                          ""
+                                        )}{" "}
+                                      </div>
+                                    </div>{" "}
+                                  </div>{" "}
+                                </Card>{" "}
+                              </div> */}
+                              </div>
+                            </div>{" "}
+                          </>
+                        );
+                      }
+                    )}
+                  </div>
+                  {/* <CardList /> */}
+                  {/* <TableList response={forHandlerResponse} /> */}
+                  <Graphs response={forHandlerResponse} />
+                </>
+              )}
             </Tab>
           </Tabs>
         </div>
