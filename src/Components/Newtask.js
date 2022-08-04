@@ -9,8 +9,9 @@ import Footer from "./Footer";
 import MapComponent from "./MapComponent";
 import NavBar from "./Nav-bar";
 import { Table, Modal } from "react-bootstrap";
-import { FaEye, FaTimes, FaTrash } from "react-icons/fa";
+import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
 import Select from "react-select";
+import { Viewer } from "@react-pdf-viewer/core";
 
 const CATEGORY_QUERY = gql`
   {
@@ -84,6 +85,25 @@ function Newtask({ logoutClick, userDetails }) {
   const [file, setFile] = useState();
   const [startDate, setStartDate] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  function dateFormatter(date) {
+    const months = [
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
+    ];
+    let formatted_date =
+      date.getDate() + "-" + months[date.getMonth()] + "-" + date.getFullYear();
+    return formatted_date;
+  }
   const [createTaskInput, setCreateTaskInput] = useState({
     categoryId: 0,
     subCategoryId: 0,
@@ -101,6 +121,7 @@ function Newtask({ logoutClick, userDetails }) {
 
   const [uploadedFile, setUploadedFile] = useState([]);
   const [popUpImage, setPopUpImage] = useState();
+  const [openPdfFile, setOpenPdfFile] = useState("");
   const [showViewDocPopup, setShowViewDocPopup] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState();
   const [chars_left_description, setCharsLeftDescription] = useState(200);
@@ -125,6 +146,7 @@ function Newtask({ logoutClick, userDetails }) {
     SUB_SUB_CATEGORY_QUERY
   );
   const categoryResponse = useQuery(CATEGORY_QUERY);
+  console.log(categoryResponse);
   const userResponse = useQuery(GET_USERS_QUERY);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
   // GRAPHQL query request and response end
@@ -210,7 +232,7 @@ function Newtask({ logoutClick, userDetails }) {
     setUploadedFile([...event.target.files]);
     setFile(event.target.files);
     let array = [];
-    array.push(event.target.files[0]);
+    array.push([event.target.files]);
     setCreateTaskInput((prevState) => ({
       ...prevState,
       fileIds: array,
@@ -221,30 +243,34 @@ function Newtask({ logoutClick, userDetails }) {
   const [SubmitTask] = useMutation(CREATE_TASK);
   const onSubmit = (data) => {
     console.log(createTaskInput);
-    const res = SubmitTask({
-      variables: {
-        input: {
-          title: createTaskInput.title,
-          categoryId: createTaskInput.categoryId,
-          subCategoryId: createTaskInput.subCategoryId,
-          description: createTaskInput.description,
-          // fileIds: createTaskInput.fileIds,
-          currentAssignee: createTaskInput.currentAssignee,
-          creationLocLatitude: createTaskInput.creationLocLatitude,
-          creationLocLongitude: createTaskInput.creationLocLongitude,
+    if (data) {
+      const res = SubmitTask({
+        variables: {
+          input: {
+            title: createTaskInput.title,
+            categoryId: createTaskInput.categoryId,
+            subCategoryId: createTaskInput.subCategoryId,
+            description: createTaskInput.description,
+            fileIds: createTaskInput.fileIds,
+            currentAssignee: createTaskInput.currentAssignee,
+            creationLocLatitude: createTaskInput.creationLocLatitude,
+            creationLocLongitude: createTaskInput.creationLocLongitude,
+            dueDate: createTaskInput.dueDate,
+          },
         },
-      },
-    });
-
-    console.log("res : ", res);
-
-    if (data != null) {
-      // console.log(data);
-      // formref.current.reset();
-      toast.success("Submitted Successfully");
+      });
+      console.log("res : ", res);
     } else {
-      toast.error("Fill all required fields");
+      console.log("fill all required fields");
     }
+
+    // if (data != null) {
+    //   // console.log(data);
+    //   // formref.current.reset();
+    //   toast.success("Submitted Successfully");
+    // } else {
+    //   toast.error("Fill all required fields");
+    // }
   };
 
   const deleteSelectedRow = (index) => {
@@ -261,7 +287,11 @@ function Newtask({ logoutClick, userDetails }) {
 
   return (
     <div className="main ">
-      <NavBar logoutClick={logoutClick} userDetails={userDetails} />
+      <NavBar
+        logoutClick={logoutClick}
+        userDetails={userDetails}
+        handleChangeFileData={handleChangeFileData}
+      />
 
       <br />
       <div className="container main-container mb-5">
@@ -270,10 +300,11 @@ function Newtask({ logoutClick, userDetails }) {
             <div className="row ">
               <div className="col-xs-12 col-sm-12 col-md-6  ">
                 <div className="mt-2">
-                  <label className="asterisk_input"> Title </label>
                   <input
                     type="text"
-                    className="form-control"
+                    // className="form-control"
+                    placeholder="Title"
+                    className="box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
                     name="title"
                     {...register("subjectLine", { required: true })}
                     onChange={handleChangeSubjectData}
@@ -283,60 +314,57 @@ function Newtask({ logoutClick, userDetails }) {
                     <p className="text-danger"> Title is required</p>
                   )}
                 </div>
-                <div className="mt-2">
-                  <label className="asterisk_input"> Description </label>
+                <div className="mt-5">
                   <textarea
+                    placeholder="Description"
                     name="description"
                     {...register("description", { required: true })}
                     onChange={handleChangeDescriptionData}
-                    className="form-control mt-2 "
-                  >
-                    {" "}
-                  </textarea>
+                    className="box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                  />
                   {errors.description && (
                     <p className="text-danger"> Description is required</p>
                   )}
                   <p className="charLeftClass">
-                    Characters Left: {chars_left_description}
+                    Document cannot exceed 200 characters
+                    {/* Document cannot exceed 200 characters :  {chars_left_description} */}
                   </p>
                 </div>
-                <div className="mt-2">
-                  <label className="asterisk_input"> Category </label>
-                  <select
+                <div className="mt-5">
+                  <Select
                     name="category"
-                    className="mt-2 form-control"
-                    {...register("category", { required: true })}
-                    onChange={(e) =>
+                    placeholder="Category"
+                    // className="mt-2 form-control"
+                    className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    options={
+                      categoryResponse.data &&
+                      categoryResponse.data.getCategories.map(
+                        ({ categoryId: value, name: label }) => ({
+                          label,
+                          value,
+                        })
+                      )
+                    }
+                    onChange={(selectedOption) => {
                       getSubCategory({
                         variables: {
                           categoryId: setCreateTaskInput((prevState) => ({
                             ...prevState,
-                            categoryId: e.target.value,
+                            categoryId: selectedOption,
                           })),
                         },
-                      })
-                    }
-                  >
-                    <option value="">Choose..</option>
-                    {categoryResponse.data &&
-                      categoryResponse.data.getCategories.map((item, index) => {
-                        return (
-                          <option key={index} value={item.categoryId}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                  </select>
+                      });
+                    }}
+                  ></Select>
                   {errors.category && (
                     <p className="text-danger"> Category is required</p>
                   )}
                 </div>
 
-                <div className="mt-2 ">
-                  <label className="asterisk_input"> Sub Category </label>
+                <div className="mt-5">
                   <select
                     name="subcategory"
-                    {...register("subcategory", { required: true })}
+                    className="mt-2 border-0 border-bottom w-100 fontSize11"
                     onChange={(e) =>
                       getSubSubCategory({
                         variables: {
@@ -347,9 +375,9 @@ function Newtask({ logoutClick, userDetails }) {
                         },
                       })
                     }
-                    className="mt-2 form-control"
+                    // className="mt-2 form-control"
                   >
-                    <option value="">Choose..</option>
+                    <option value="">Sub Category </option>
                     {subCategoryResponse.data &&
                       subCategoryResponse.data.getSubCategoriesByCategoryId.map(
                         (item, index) => {
@@ -361,15 +389,13 @@ function Newtask({ logoutClick, userDetails }) {
                         }
                       )}
                   </select>
-                  {errors.subcategory && (
-                    <p className="text-danger"> Sub Category is required</p>
-                  )}
                 </div>
-                <div className="mt-2">
-                  <label> Sub Sub Category </label>
+                <div className="mt-5">
                   <select
                     name="subsubcategory"
-                    className="mt-2 form-control"
+                    placeholder="sub sub category"
+                    // className="mt-2 form-control"
+                    className="mt-2 border-0 border-bottom w-100 fontSize11"
                     onChange={(e) => {
                       setCreateTaskInput((prevState) => ({
                         ...prevState,
@@ -377,7 +403,7 @@ function Newtask({ logoutClick, userDetails }) {
                       }));
                     }}
                   >
-                    <option value="">Choose..</option>
+                    <option value="">Sub Sub Category </option>
                     {subsubCategoryResponse.data &&
                     subsubCategoryResponse.data ? (
                       subsubCategoryResponse.data.getSubSubCategoriesBySubCategoryId.map(
@@ -395,36 +421,74 @@ function Newtask({ logoutClick, userDetails }) {
                   </select>
                 </div>
 
-                <div className="mt-2">
-                  <label className="asterisk_input"> Handler </label>
-                  <select
-                    name="category"
-                    className="mt-2 form-control"
-                    onChange={(e) => {
+                <div className="mt-5">
+                  <div>
+                    {uploadedFile && uploadedFile.length > 0 && (
+                      <div className="mt-5">
+                        <label className="marginRight1 mt-2">
+                          {" "}
+                          Attached Files: &nbsp;{" "}
+                        </label>
+                        <div style={{ "overflow-y": "scroll", height: "50vh" }}>
+                          <Table responsive className="border-0 mt-2">
+                            <tbody>
+                              {uploadedFile.map((file, index) => {
+                                return (
+                                  <tr key={index}>
+                                    <td className="border-0 fontSize11">
+                                      {" "}
+                                      {file.name}{" "}
+                                    </td>
+                                    <td className="border-0 fontSize11">
+                                      {" "}
+                                      <FaEye
+                                        onClick={() => handleEyeIconClick(file)}
+                                      />{" "}
+                                    </td>
+                                    <td className="border-0 fontSize11">
+                                      {" "}
+                                      <FaTrashAlt
+                                        onClick={(e) =>
+                                          deleteSelectedRow(index, e)
+                                        }
+                                      />{" "}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="col-xs-12 col-sm-12 col-md-6 ">
+                <div className="mt-5">
+                  <Select
+                    name="handler"
+                    placeholder="Handler"
+                    // className="mt-2 form-control"
+                    className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    onChange={(selectedOption) => {
                       setCreateTaskInput((prevState) => ({
                         ...prevState,
-                        currentAssignee: e.target.value,
+                        currentAssignee: selectedOption,
                       }));
                     }}
-                    {...register("handler", { required: true })}
-                  >
-                    <option value="">Choose..</option>
-                    {userResponse.data &&
-                      userResponse.data.getUsers.map((item, index) => {
-                        return (
-                          <option key={index} value={item.userId}>
-                            {item.emailAddress}
-                          </option>
-                        );
-                      })}
-                  </select>
-                  {errors.handler && (
-                    <p className="text-danger"> Handler is required</p>
-                  )}
+                    options={
+                      userResponse.data &&
+                      userResponse.data.getUsers.map(
+                        ({ userId: value, emailAddress: label }) => ({
+                          label,
+                          value,
+                        })
+                      )
+                    }
+                  ></Select>
                 </div>
-                <div className="mt-2">
-                  <label> Watcher </label>
-
+                {/* <div className="mt-5">
                   <Select
                     name="watcher"
                     className="rounded-0"
@@ -446,104 +510,30 @@ function Newtask({ logoutClick, userDetails }) {
                     // }}
                     isMulti
                   />
-                </div>
+                </div> */}
 
-                <div className="mt-1">
-                  <label className="marginRight1 mt-1">
-                    {" "}
-                    Attach Document : &nbsp;
-                    <input
-                      type="file"
-                      className="mt-2"
-                      name="fileAttach"
-                      onChange={handleChangeFileData}
-                      multiple
+                <div className="mt-5">
+                  <div className="d-flex cursor-pointer mt-1">
+                    <ReactDatePicker
+                      type="text"
+                      name="fromDate"
+                      placeholderText="Due Date"
+                      className="datePickerField col-lg-12 border-0  w-100 border-bottom fontSize11"
+                      dateFormat="dd-MM-yyyy"
+                      selected={startDate}
+                      // onChange={(date) => setStartDate(date)}
+                      onChange={(date) => {
+                        setStartDate(date);
+                        setCreateTaskInput((prevState) => ({
+                          ...prevState,
+                          dueDate: date,
+                        }));
+                      }}
                     />
-                    {/* <Link to="#" className="mt-2">
-                  {" "}
-                  Relate to previous Task?
-                </Link> */}
-                  </label>
-                  {/* Document Viewer */}
-                  {uploadedFile && uploadedFile.length > 0 && (
-                    <div className="document-viewer mt-2">
-                      <strong className="">Uploaded Files</strong>
-                      <Table responsive className="border mt-2">
-                        <tbody>
-                          {uploadedFile.map((file, index) => {
-                            return (
-                              <tr key={index}>
-                                <td style={{ width: "85%" }}> {file.name} </td>
-                                <td>
-                                  {" "}
-                                  <FaEye
-                                    onClick={() => handleEyeIconClick(file)}
-                                  />{" "}
-                                </td>
-                                <td>
-                                  {" "}
-                                  <FaTrash
-                                    onClick={() => deleteSelectedRow(index)}
-                                  />{" "}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </Table>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="col-xs-12 col-sm-12 col-md-6 ">
-                <div className="mt-2">
-                  <label className=""> Relate to previous task </label>
-                  <div className=" ">
-                    <div className="input-group mt-2">
-                      <input
-                        type="text"
-                        list="search"
-                        className="form-control search-bar w-100"
-                        placeholder="search "
-                        aria-describedby="basic-addon2"
-                      />
-                      <span
-                        className="input-view-icon cursor-pointer"
-                        id="basic-addon2"
-                        title="view"
-                      >
-                        <GrView className="mt-1 mb-1" />
-                      </span>
-                      <datalist id="search">
-                        <option>Deposit</option>
-                        <option>Loan</option>
-                        <option>Interest</option>
-                        <option>Finance</option>
-                      </datalist>
-                    </div>
-
-                    {/* </div> */}
+                    <BsCalendar className="mt-1 border-bottom" />
                   </div>
                 </div>
-                <div className="mt-2">
-                  <label className="mt-1 w-100">
-                    {" "}
-                    ETA
-                    <div className="d-flex form-control cursor-pointer mt-1">
-                      <ReactDatePicker
-                        type="text"
-                        name="fromDate"
-                        className="datePickerField col-lg-12 border-0 "
-                        dateFormat="dd-MM-yyyy"
-                        selected={startDate}
-                        placeholderText="start date"
-                        onChange={(date) => setStartDate(date)}
-                      />
-                      <BsCalendar className="mt-1" />
-                    </div>
-                  </label>
-                </div>
-                <div className="mt-3 d-flex justify-content-center">
+                <div className="mt-5 d-flex justify-content-center">
                   <MapComponent
                     position={position}
                     mapError={mapError}
@@ -555,16 +545,14 @@ function Newtask({ logoutClick, userDetails }) {
             <br />
             <div className="row">
               <div className="col"></div>
-              <div className="col-xs-4 col-lg-4 col-md-6 col-lg-5 mt-2 mb-5 ">
-                <button
-                  type="submit"
-                  className="form-control  btn-clr submitButton"
-                >
+
+              <div className="col"></div>
+              <div className="mt-2 mb-5 col">
+                <button type="submit" className="form-control btn-clr">
                   {" "}
                   Submit{" "}
                 </button>
               </div>
-              <div className="col"></div>
             </div>
           </form>
         </div>
@@ -574,7 +562,8 @@ function Newtask({ logoutClick, userDetails }) {
             <FaTimes onClick={handleCloseClick} />{" "}
           </Modal.Header>
           <Modal.Body>
-            <img src={popUpImage} style={{ width: "50vh" }} />
+            <img src={popUpImage} />
+            <Viewer fileUrl={openPdfFile} />
           </Modal.Body>
         </Modal>
         <Footer />

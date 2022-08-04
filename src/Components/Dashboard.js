@@ -1,21 +1,21 @@
-import { React, useState } from "react";
-import { Card, Tab, Tabs } from "react-bootstrap";
-import Footer from "./Footer";
-import Graphs from "./Graphs/Graphs";
-import AppNavBar from "./MIUI/AppNavBar";
-import SideNavDrawer from "./MIUI/SideNavDrawer";
-import NavBar from "./Nav-bar";
-import TableList from "./TableList";
-import { useQuery, gql } from "@apollo/client";
-import CreatorTableList from "./Graphs/CreatorTableList";
-import WatcherTableList from "./WatcherTableList";
-import { getUser } from "react-oidc-client";
-import { FaPlus, FaFilter, FaSortAmountDown, FaCircle } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import CardList from "./CardList";
-import Accordion from "react-bootstrap/Accordion";
+import {
+  ApolloClient,
+  gql,
+  InMemoryCache,
+  useLazyQuery,
+  useQuery,
+} from "@apollo/client";
+import { React, useEffect, useState } from "react";
+import { Modal, Tab, Tabs } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
+import { FaPlus, FaTimes } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import CardList from "./CardList";
+import Filters from "./Filters";
+import Footer from "./Footer";
+import Graphs from "./Graphs/Graphs";
+import NavBar from "./Nav-bar";
 
 const FILTERED_TASK_QUERY = gql`
   query GETALL($request: SearchRequest) {
@@ -43,77 +43,180 @@ const CATEGORY_QUERY = gql`
     }
   }
 `;
+
+const client = new ApolloClient({
+  uri: "http://3.110.3.72/graphql",
+  cache: new InMemoryCache(),
+  fetchOptions: {
+    mode: "no-cors",
+  },
+  headers: {
+    "Authentication-Token": "saldfal00965-klal998-jknj",
+    userId: "1",
+  },
+});
+
 function Dashboard({ logoutClick, userDetails }) {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState(new Date());
-  const forHandlerResponse = useQuery(FILTERED_TASK_QUERY, {
-    variables: {
-      request: {
-        page: 0,
-        size: 10,
-        filters: [
-          {
-            filterKey: "categoryId",
-            operator: "EQUAL",
-            values: ["1"],
-          },
-        ],
-        sorts: [
-          {
-            key: "taskId",
-            direction: "DESC",
-          },
-        ],
-      },
-    },
-  });
-  const forCreatorResponse = useQuery(FILTERED_TASK_QUERY, {
-    variables: {
-      request: {
-        page: 0,
-        size: 10,
-      },
-      filters: [
-        {
-          filterKey: "createdBy",
-          operator: "EQUAL",
-          values: ["1"],
-        },
-      ],
-      sorts: [
-        {
-          key: "taskId",
-          direction: "DESC",
-        },
-      ],
-    },
-  });
-  const forWatcherResponse = useQuery(FILTERED_TASK_QUERY, {
-    variables: {
-      request: {
-        page: 0,
-        size: 10,
-      },
-      filters: [
-        {
-          filterKey: "categoryId",
-          operator: "EQUAL",
-          values: ["1"],
-        },
-      ],
-      sorts: [
-        {
-          key: "taskId",
-          direction: "DESC",
-        },
-      ],
-    },
-  });
-  const categoryResponse = useQuery(CATEGORY_QUERY);
+  const [categoryId, setCategoryId] = useState("");
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
+    setCategoryId(selectedValue.target.value);
   };
 
+  const categoryResponse = useQuery(CATEGORY_QUERY);
+
+  const handleEyeIconClick = (file) => {
+    setShowViewDocPopup(true);
+  };
+  const handleCloseClick = () => setShowViewDocPopup(false);
+  const [showViewDocPopup, setShowViewDocPopup] = useState(false);
+
+  const [handlerResponse, setHandlerResponse] = useState();
+  const [watcherResponse, setWatcherResponse] = useState();
+  const [creatorResponse, setCreatorResponse] = useState();
+
+  const clientCallforHandlerResponse = (sortType = "DESC") => {
+    client
+      .query({
+        query: FILTERED_TASK_QUERY,
+        variables: {
+          request: {
+            page: 0,
+            size: 10,
+            filters: [
+              {
+                filterKey: "categoryId",
+                operator: "EQUAL",
+                values: ["1"],
+              },
+            ],
+            sorts: [
+              {
+                key: "status",
+                direction: sortType,
+              },
+            ],
+          },
+        },
+      })
+      .then((response) => {
+        setHandlerResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
+  const clientCallforCreatorResponse = (sortType = "DESC") => {
+    client
+      .query({
+        query: FILTERED_TASK_QUERY,
+        variables: {
+          request: {
+            page: 0,
+            size: 10,
+            filters: [
+              {
+                filterKey: "createdBy",
+                operator: "EQUAL",
+                values: ["1"],
+              },
+            ],
+            sorts: [
+              {
+                key: "status",
+                direction: sortType,
+              },
+            ],
+          },
+        },
+      })
+      .then((response) => {
+        console.log("creator respose ", response);
+        setCreatorResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    clientCallforHandlerResponse("DESC");
+    clientCallforCreatorResponse("DESC");
+  }, []);
+
+  const today = new Date();
+
+  const nextweek = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - 7
+  );
+
+  const [defDescSortHandler, setDefSortHandler] = useState(true);
+  const [defDescSortCreator, setDefSortCreator] = useState(true);
+
+  const handleSorterforHandler = () => {
+    // console.log("click");
+    setDefSortHandler(!defDescSortHandler);
+    if (defDescSortHandler) {
+      clientCallforHandlerResponse("ASC");
+    } else {
+      clientCallforHandlerResponse("DESC");
+    }
+  };
+
+  const handleSorterforCreator = () => {
+    // console.log("click for creator");
+    setDefSortCreator(!defDescSortCreator);
+    if (defDescSortCreator) {
+      clientCallforCreatorResponse("ASC");
+    } else {
+      clientCallforCreatorResponse("DESC");
+    }
+  };
+
+  const handleStart = (date) => {
+    setStartDate(date);
+  };
+  const handleEnd = (date) => {
+    setEndDate(date);
+  };
+
+  const submitFilter = (e) => {
+    e.preventDefault();
+    if (showViewDocPopup) {
+      setShowViewDocPopup(!showViewDocPopup);
+    }
+    console.log("submit");
+    console.log(startDate ? startDate : nextweek);
+    console.log(endDate);
+    console.log(categoryId);
+    client
+      .query({
+        query: FILTERED_TASK_QUERY,
+        variables: {
+          request: {
+            page: 0,
+            size: 10,
+            filters: [
+              {
+                filterKey: "categoryId",
+                operator: "EQUAL",
+                values: [categoryId],
+              },
+            ],
+            sorts: [
+              {
+                key: "status",
+                direction: "DESC",
+              },
+            ],
+          },
+        },
+      })
+      .then((response) => {
+        setHandlerResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
@@ -127,511 +230,80 @@ function Dashboard({ logoutClick, userDetails }) {
           <Tabs
             defaultActiveKey="handle"
             id="dashboard-nav-tab-id"
-            className="mb-3 text-danger dashboard-tabs"
+            className="mb-2 text-danger dashboard-tabs"
           >
+            {/* handler */}
             <Tab className="dashboard-tab" eventKey="handle" title="Handler">
-              {forHandlerResponse.data && (
+              {handlerResponse && (
                 <>
-                  <div className="row d-flex">
-                    <div className="filters-sorting">
-                      {/* <div className="d-flex">
-                        <span className="ml-1">
-                          <FaFilter />
-                        </span>
-                        <FaSortAmountDown />
-                      </div> */}
-                    </div>
-                    <div className="col-xs-12 col-sm-12 col-md-11 col-lg-11">
-                      <Accordion>
-                        <Accordion.Item eventKey="0">
-                          <Accordion.Header>
-                            <FaFilter />
-                          </Accordion.Header>
-                          <Accordion.Body>
-                            <div className="row">
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label className=" w-100">
-                                  {" "}
-                                  <span className="filter-span-header">
-                                    Start Date
-                                  </span>
-                                  <div className="d-flex form-control cursor-pointer ">
-                                    <ReactDatePicker
-                                      type="text"
-                                      name="fromDate"
-                                      className="datePickerField col-lg-12 border-0 "
-                                      dateFormat="dd-MM-yyyy"
-                                      selected={startDate}
-                                      placeholderText="start date"
-                                      onChange={(date) => setStartDate(date)}
-                                    />
-                                    <BsCalendar className="mt-1" />
-                                  </div>
-                                </label>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label className="w-100">
-                                  {" "}
-                                  <span className="filter-span-header">
-                                    End Date
-                                  </span>
-                                  <div className="d-flex form-control cursor-pointer ">
-                                    <ReactDatePicker
-                                      type="text"
-                                      name="fromDate"
-                                      className="datePickerField col-lg-12 border-0 "
-                                      dateFormat="dd-MM-yyyy"
-                                      minDate={startDate}
-                                      selected={endDate}
-                                      placeholderText="end date"
-                                      onChange={(date) => setEndDate(date)}
-                                    />
-                                    <BsCalendar className="mt-1" />
-                                  </div>
-                                </label>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label>
-                                  <span className="filter-span-header">
-                                    Category
-                                  </span>{" "}
-                                </label>
-                                <select
-                                  onChange={handleCategoryChange}
-                                  className=" form-control"
-                                >
-                                  <option value="">All</option>
-                                  {categoryResponse.data &&
-                                    categoryResponse.data.getCategories.map(
-                                      (item, index) => {
-                                        return (
-                                          <option
-                                            key={index}
-                                            value={item.categoryId}
-                                          >
-                                            {item.name}
-                                          </option>
-                                        );
-                                      }
-                                    )}
-                                </select>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <div className="text-center pt-3">
-                                  <button
-                                    type="submit"
-                                    className="btn btn-clr rounded-0 filter-btn-submit"
-                                  >
-                                    submit
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </Accordion.Body>
-                        </Accordion.Item>
-                      </Accordion>
-                    </div>
-                    <div className="col-xs-12 col-sm-12 col-md-1 col-lg-1">
-                      <span className="btn d-flex justify-content-center card p-2">
-                        <FaSortAmountDown />
-                      </span>
+                  <Filters
+                    handleSorter={handleSorterforHandler}
+                    handleEyeIconClick={handleEyeIconClick}
+                    categoryResponse={categoryResponse}
+                    submitFilter={submitFilter}
+                    startDate={startDate ? startDate : nextweek}
+                    endDate={endDate}
+                    handleCategoryChange={handleCategoryChange}
+                    handleStart={handleStart}
+                    handleEnd={handleEnd}
+                  />
+                  <CardList response={handlerResponse} />
+                  <div className="show-mobile-icons">
+                    <div>
+                      <CardList response={handlerResponse} />
                     </div>
                   </div>
-                  <br />
-                  <div>
-                    {forHandlerResponse.data.getFilteredTasks.map(
-                      (item, index) => {
-                        return (
-                          <>
-                            <div key={index}>
-                              {" "}
-                              <div className="row">
-                                {/* <div className=" "> */}
-                                {/* {index < 5 ? ( */}
-                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                    <div className="d-flex">
-                                      {" "}
-                                      <div className="w-75 ml-2">
-                                        {" "}
-                                        <div>
-                                          {" "}
-                                          <b> {item.title}</b>
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          {item.createdBy} +{" "}
-                                          {item.currentAssignee}{" "}
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          <b> Due : </b>{" "}
-                                          {item.dueDate &&
-                                            item.dueDate.formatString}{" "}
-                                        </div>{" "}
-                                      </div>
-                                      <div className="floatRight mt-4">
-                                        <div>
-                                          {" "}
-                                          {item.status == "Due Past" ? (
-                                            <FaCircle className="MyTaskStatusCircleDuePast" />
-                                          ) : item.status == "InProgress" ? (
-                                            <FaCircle className="MyTaskStatusCircleInprogress" />
-                                          ) : item.status == "New" ? (
-                                            <FaCircle className="MyTaskStatusCircleNew" />
-                                          ) : (
-                                            ""
-                                          )}{" "}
-                                        </div>
-                                      </div>{" "}
-                                    </div>{" "}
-                                  </Card>
-                                </div>
-                                {/* ) : ( */}
-                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                    <div className="d-flex">
-                                      {" "}
-                                      <div className="w-75 ml-2">
-                                        {" "}
-                                        <div>
-                                          {" "}
-                                          <b> {item.title}</b>
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          {item.createdBy} +{" "}
-                                          {item.currentAssignee}{" "}
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          <b> Due : </b>{" "}
-                                          {item.dueDate &&
-                                            item.dueDate.formatString}{" "}
-                                        </div>{" "}
-                                      </div>
-                                      <div className="floatRight mt-4">
-                                        <div>
-                                          {" "}
-                                          {item.taskStatus == "Due Past" ? (
-                                            <FaCircle className="MyTaskStatusCircleDuePast" />
-                                          ) : item.taskStatus ==
-                                            "InProgress" ? (
-                                            <FaCircle className="MyTaskStatusCircleInprogress" />
-                                          ) : item.taskStatus == "New" ? (
-                                            <FaCircle className="MyTaskStatusCircleNew" />
-                                          ) : (
-                                            ""
-                                          )}{" "}
-                                        </div>
-                                      </div>{" "}
-                                    </div>{" "}
-                                  </Card>
-                                </div>
-                                {/* )}{" "} */}
-                                {/* </div> */}
-                                {/* <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
-                                <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                  <div className="d-flex">
-                                    {" "}
-                                    <div className="w-75 ml-2">
-                                      {" "}
-                                      <div>
-                                        {" "}
-                                        <b> {item.subject}</b>
-                                      </div>
-                                      <div>
-                                        {" "}
-                                        {item.createdBy} + {item.assignedTo}{" "}
-                                      </div>
-                                      <div>
-                                        {" "}
-                                        <b> Due : </b> {item.createdOn}{" "}
-                                      </div>{" "}
-                                    </div>
-                                    <div className="floatRight mt-4">
-                                      <div>
-                                        {" "}
-                                        {item.taskStatus == "Due Past" ? (
-                                          <FaCircle className="MyTaskStatusCircleDuePast" />
-                                        ) : item.taskStatus == "InProgress" ? (
-                                          <FaCircle className="MyTaskStatusCircleInprogress" />
-                                        ) : item.taskStatus == "New" ? (
-                                          <FaCircle className="MyTaskStatusCircleNew" />
-                                        ) : (
-                                          ""
-                                        )}{" "}
-                                      </div>
-                                    </div>{" "}
-                                  </div>{" "}
-                                </Card>{" "}
-                              </div> */}
-                              </div>
-                            </div>{" "}
-                          </>
-                        );
-                      }
-                    )}
-                  </div>
-                  {/* <CardList /> */}
-                  {/* <TableList response={forHandlerResponse} /> */}
-                  <Graphs response={forHandlerResponse} />
+                  <Graphs response={handlerResponse} />
                 </>
               )}
             </Tab>
+            {/* Watcher */}
             <Tab eventKey="watch" title="Watcher">
-              {/* <TableList columns={""} /> */}
-              {/* <Graphs /> */}
-
-              {/* <WatcherTableList /> */}
-            </Tab>
-            <Tab eventKey="create" title="Creator">
-              {forHandlerResponse.data && (
+              {/* {response && (
                 <>
-                  <div className="row d-flex">
-                    <div className="filters-sorting">
-                      {/* <div className="d-flex">
-                        <span className="ml-1">
-                          <FaFilter />
-                        </span>
-                        <FaSortAmountDown />
-                      </div> */}
-                    </div>
-                    <div className="col-xs-12 col-sm-12 col-md-11 col-lg-11">
-                      <Accordion>
-                        <Accordion.Item eventKey="0">
-                          <Accordion.Header>
-                            <FaFilter />
-                          </Accordion.Header>
-                          <Accordion.Body>
-                            <div className="row">
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label className=" w-100">
-                                  {" "}
-                                  <span className="filter-span-header">
-                                    Start Date
-                                  </span>
-                                  <div className="d-flex form-control cursor-pointer ">
-                                    <ReactDatePicker
-                                      type="text"
-                                      name="fromDate"
-                                      className="datePickerField col-lg-12 border-0 "
-                                      dateFormat="dd-MM-yyyy"
-                                      selected={startDate}
-                                      placeholderText="start date"
-                                      onChange={(date) => setStartDate(date)}
-                                    />
-                                    <BsCalendar className="mt-1" />
-                                  </div>
-                                </label>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label className="w-100">
-                                  {" "}
-                                  <span className="filter-span-header">
-                                    End Date
-                                  </span>
-                                  <div className="d-flex form-control cursor-pointer ">
-                                    <ReactDatePicker
-                                      type="text"
-                                      name="fromDate"
-                                      className="datePickerField col-lg-12 border-0 "
-                                      dateFormat="dd-MM-yyyy"
-                                      minDate={startDate}
-                                      selected={endDate}
-                                      placeholderText="end date"
-                                      onChange={(date) => setEndDate(date)}
-                                    />
-                                    <BsCalendar className="mt-1" />
-                                  </div>
-                                </label>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <label>
-                                  <span className="filter-span-header">
-                                    Category
-                                  </span>{" "}
-                                </label>
-                                <select
-                                  onChange={handleCategoryChange}
-                                  className=" form-control"
-                                >
-                                  <option value="">All</option>
-                                  {categoryResponse.data &&
-                                    categoryResponse.data.getCategories.map(
-                                      (item, index) => {
-                                        return (
-                                          <option
-                                            key={index}
-                                            value={item.categoryId}
-                                          >
-                                            {item.name}
-                                          </option>
-                                        );
-                                      }
-                                    )}
-                                </select>
-                              </div>
-                              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                                <div className="text-center pt-3">
-                                  <button
-                                    type="submit"
-                                    className="btn btn-clr rounded-0 filter-btn-submit"
-                                  >
-                                    submit
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </Accordion.Body>
-                        </Accordion.Item>
-                      </Accordion>
-                    </div>
-                    <div className="col-xs-12 col-sm-12 col-md-1 col-lg-1">
-                      <span className="btn d-flex justify-content-center card p-2">
-                        <FaSortAmountDown />
-                      </span>
+                   <Filters
+                    handleSorter={handleSorterforHandler}
+                    handleEyeIconClick={handleEyeIconClick}
+                    categoryResponse={categoryResponse}
+                    submitFilter={submitFilter}
+                    startDate={nextweek}
+                    endDate={endDate}
+                    handleCategoryChange={handleCategoryChange}
+                    handleStart={handleStart}
+                    handleEnd={handleEnd}
+                  />
+                  <CardList response={response} />
+                  <div className="show-mobile-icons">
+                    <div>
+                      <CardList response={response} />
                     </div>
                   </div>
-                  <br />
-                  <div>
-                    {forCreatorResponse.data.getFilteredTasks.map(
-                      (item, index) => {
-                        return (
-                          <>
-                            <div key={index}>
-                              {" "}
-                              <div className="row">
-                                {/* <div className=" "> */}
-                                {/* {index < 5 ? ( */}
-                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                    <div className="d-flex">
-                                      {" "}
-                                      <div className="w-75 ml-2">
-                                        {" "}
-                                        <div>
-                                          {" "}
-                                          <b> {item.title}</b>
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          {item.createdBy} +{" "}
-                                          {item.currentAssignee}{" "}
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          <b> Due : </b>{" "}
-                                          {item.dueDate &&
-                                            item.dueDate.formatString}{" "}
-                                        </div>{" "}
-                                      </div>
-                                      <div className="floatRight mt-4">
-                                        <div>
-                                          {" "}
-                                          {item.status == "Due Past" ? (
-                                            <FaCircle className="MyTaskStatusCircleDuePast" />
-                                          ) : item.status == "InProgress" ? (
-                                            <FaCircle className="MyTaskStatusCircleInprogress" />
-                                          ) : item.status == "New" ? (
-                                            <FaCircle className="MyTaskStatusCircleNew" />
-                                          ) : (
-                                            ""
-                                          )}{" "}
-                                        </div>
-                                      </div>{" "}
-                                    </div>{" "}
-                                  </Card>
-                                </div>
-                                {/* ) : ( */}
-                                <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                                  <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                    <div className="d-flex">
-                                      {" "}
-                                      <div className="w-75 ml-2">
-                                        {" "}
-                                        <div>
-                                          {" "}
-                                          <b> {item.title}</b>
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          {item.createdBy} +{" "}
-                                          {item.currentAssignee}{" "}
-                                        </div>
-                                        <div>
-                                          {" "}
-                                          <b> Due : </b>{" "}
-                                          {item.dueDate &&
-                                            item.dueDate.formatString}{" "}
-                                        </div>{" "}
-                                      </div>
-                                      <div className="floatRight mt-4">
-                                        <div>
-                                          {" "}
-                                          {item.taskStatus == "Due Past" ? (
-                                            <FaCircle className="MyTaskStatusCircleDuePast" />
-                                          ) : item.taskStatus ==
-                                            "InProgress" ? (
-                                            <FaCircle className="MyTaskStatusCircleInprogress" />
-                                          ) : item.taskStatus == "New" ? (
-                                            <FaCircle className="MyTaskStatusCircleNew" />
-                                          ) : (
-                                            ""
-                                          )}{" "}
-                                        </div>
-                                      </div>{" "}
-                                    </div>{" "}
-                                  </Card>
-                                </div>
-                                {/* )}{" "} */}
-                                {/* </div> */}
-                                {/* <div className="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
-                                <Card className="p-2 card-bg backgroundCard rounded-0 m-1 ">
-                                  <div className="d-flex">
-                                    {" "}
-                                    <div className="w-75 ml-2">
-                                      {" "}
-                                      <div>
-                                        {" "}
-                                        <b> {item.subject}</b>
-                                      </div>
-                                      <div>
-                                        {" "}
-                                        {item.createdBy} + {item.assignedTo}{" "}
-                                      </div>
-                                      <div>
-                                        {" "}
-                                        <b> Due : </b> {item.createdOn}{" "}
-                                      </div>{" "}
-                                    </div>
-                                    <div className="floatRight mt-4">
-                                      <div>
-                                        {" "}
-                                        {item.taskStatus == "Due Past" ? (
-                                          <FaCircle className="MyTaskStatusCircleDuePast" />
-                                        ) : item.taskStatus == "InProgress" ? (
-                                          <FaCircle className="MyTaskStatusCircleInprogress" />
-                                        ) : item.taskStatus == "New" ? (
-                                          <FaCircle className="MyTaskStatusCircleNew" />
-                                        ) : (
-                                          ""
-                                        )}{" "}
-                                      </div>
-                                    </div>{" "}
-                                  </div>{" "}
-                                </Card>{" "}
-                              </div> */}
-                              </div>
-                            </div>{" "}
-                          </>
-                        );
-                      }
-                    )}
+                  <Graphs response={response} />
+                </>
+              )} */}
+            </Tab>
+            {/* Creator */}
+            <Tab eventKey="create" title="Creator">
+              {creatorResponse && (
+                <>
+                  <Filters
+                    handleSorter={handleSorterforCreator}
+                    handleEyeIconClick={handleEyeIconClick}
+                    categoryResponse={categoryResponse}
+                    submitFilter={submitFilter}
+                    startDate={nextweek}
+                    endDate={endDate}
+                    handleCategoryChange={handleCategoryChange}
+                    handleStart={handleStart}
+                    handleEnd={handleEnd}
+                  />
+                  <CardList response={creatorResponse} />
+                  <div className="show-mobile-icons">
+                    <div>
+                      <CardList response={creatorResponse} />
+                    </div>
                   </div>
-                  {/* <CardList /> */}
-                  {/* <TableList response={forHandlerResponse} /> */}
-                  <Graphs response={forHandlerResponse} />
+                  <Graphs response={creatorResponse} />
                 </>
               )}
             </Tab>
@@ -641,6 +313,84 @@ function Dashboard({ logoutClick, userDetails }) {
       <Link to="/AddTask" className="float">
         <FaPlus className="mt-3" />
       </Link>
+      <Modal show={showViewDocPopup}>
+        <Modal.Header>
+          <div>Filter</div>
+          <FaTimes onClick={handleCloseClick} />{" "}
+        </Modal.Header>
+        <Modal.Body>
+          <form onSubmit={submitFilter}>
+            <div className="row">
+              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <label className=" w-100">
+                  {" "}
+                  <span className="filter-span-header">Start Date</span>
+                  <div className="d-flex form-control cursor-pointer ">
+                    <ReactDatePicker
+                      type="text"
+                      name="fromDate"
+                      className="datePickerField col-lg-12 border-0 "
+                      dateFormat="dd-MM-yyyy"
+                      selected={startDate ? startDate : nextweek}
+                      placeholderText="start date"
+                      onChange={(date) => setStartDate(date)}
+                    />
+                    <BsCalendar className="mt-1" />
+                  </div>
+                </label>
+              </div>
+              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <label className="w-100">
+                  {" "}
+                  <span className="filter-span-header">End Date</span>
+                  <div className="d-flex form-control cursor-pointer ">
+                    <ReactDatePicker
+                      type="text"
+                      name="fromDate"
+                      className="datePickerField col-lg-12 border-0 "
+                      dateFormat="dd-MM-yyyy"
+                      minDate={startDate}
+                      selected={endDate}
+                      placeholderText="end date"
+                      onChange={(date) => setEndDate(date)}
+                    />
+                    <BsCalendar className="mt-1" />
+                  </div>
+                </label>
+              </div>
+              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <label>
+                  <span className="filter-span-header">Category</span>{" "}
+                </label>
+                <select
+                  onChange={handleCategoryChange}
+                  className=" form-control"
+                >
+                  <option value="">All</option>
+                  {categoryResponse.data &&
+                    categoryResponse.data.getCategories.map((item, index) => {
+                      return (
+                        <option key={index} value={item.categoryId}>
+                          {item.name}
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+              <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <div className="text-center pt-3">
+                  <button
+                    type="submit"
+                    className="btn btn-clr rounded-0 filter-btn-submit"
+                  >
+                    submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </Modal.Body>
+      </Modal>
       <Footer />
     </div>
   );

@@ -200,7 +200,7 @@ ul.cursor-pointer.m-0.nav-ul-lg li a {
 }
 
 .dashboard-tabs li button {
-  padding: 0.75em 10em;
+  padding: 0.75em 11.7em;
   background-color: #ffe29d !important;
 }
 
@@ -218,9 +218,6 @@ button#dashboard-nav-tab-id-tab-list {
   border-bottom: 4px solid #fdb813;
 }
 
-ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
-  background-color: #ffe29d !important;
-}
 .nav-link {
   color: #21252973;
 }
@@ -238,6 +235,14 @@ ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
   }
 }
 
+.filters-sorting {
+  display: none;
+}
+
+.show-web {
+  display: block;
+}
+
 /* For extremely small screen devices (595px and below) */
 @media only screen and (max-width: 595px) {
   ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
@@ -249,14 +254,27 @@ ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
   .show-mobile-icons {
     display: block;
   }
+  .filters-sorting {
+    display: block;
+    padding: 0 1rem;
+  }
+  .show-web {
+    display: none;
+  }
 }
 
 /* Small screen devices (600px and above) */
 @media only screen and (min-width: 600px) {
+  .dashboard-tabs li button {
+    padding: 0.75em 5.7em;
+  }
 }
 
 /* Medium screen devices (768px and above) */
 @media only screen and (min-width: 768px) {
+  .dashboard-tabs li button {
+    padding: 0.75em 5.7em;
+  }
 }
 
 /* Big screen devices (889px and above) */
@@ -265,6 +283,12 @@ ul.mb-3.text-danger.dashboard-tabs.nav.nav-tabs {
 
 /* Extra big screen devices (1200px and above) */
 @media only screen and (min-width: 1200px) {
+  .dashboard-tabs li button {
+    padding: 0.75em 5.7em;
+  }
+}
+ul.text-danger.dashboard-tabs.nav.nav-tabs {
+  background-color: #ffe29d !important;
 }
 
 .tableColumn {
@@ -456,7 +480,9 @@ nav {
 }
 
 .card-bg {
-  background: #efefefff;
+  background: #ffe29d;
+  border: none;
+  box-shadow: 2px 3px 8px #e8e7e6;
 }
 
 .MyTaskStatusCircleInprogress {
@@ -481,4 +507,23 @@ nav {
   font-size: 23px;
 
   color: #6d9eebff;
+}
+
+.filter-icons {
+  padding: 0 0.5em;
+}
+
+.modal {
+  display: flex !important;
+  align-items: center;
+}
+
+.accordion-button:focus {
+  z-index: 3;
+  border-color: #ffe29d;
+}
+
+.card-bg:hover {
+  transform: scale(1.02);
+  transition: all 0.3s;
 }

@@ -70,7 +70,7 @@ function PieChart({ getChartResponse }) {
   let currDate = new Date();
   useEffect(() => {
     const todayDate = formatDate(new Date());
-    console.log(todayDate);
+    // console.log(todayDate);
   }, []);
   const formatDate = (date) => {
     var d = new Date(date),
@@ -99,7 +99,7 @@ function PieChart({ getChartResponse }) {
     // console.log("condiiton : ", todayDate > responseDate);
 
     if (todayDate > responseDate) {
-      console.log("count");
+      // console.log("count");
       pv[cv.status] = pv[cv.status] === undefined ? 1 : (pv[cv.status] += 1);
     }
     return pv;
@@ -146,8 +146,8 @@ function PieChart({ getChartResponse }) {
 
   const withoutDueDate = getStatusNames(re);
   const withDueDate = getStatusNames(ce);
-  console.log("without Due Date : ", withoutDueDate);
-  console.log("withDueDate : ", withDueDate);
+  // console.log("without Due Date : ", withoutDueDate);
+  // console.log("withDueDate : ", withDueDate);
 
   // nwewly added
 
