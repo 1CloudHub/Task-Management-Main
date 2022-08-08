@@ -328,9 +328,9 @@ ul.text-danger.dashboard-tabs.nav.nav-tabs {
 
 .charLeftClass {
   font-size: small;
-  font-style: italic;
   float: right;
-  color: black;
+  background: red;
+  color: white;
   margin-bottom: 0;
 }
 .show-mobile-icons {
@@ -480,32 +480,26 @@ nav {
 }
 
 .card-bg {
-  background: #ffe29d;
+  background: #e4e4e4ff;
   border: none;
   box-shadow: 2px 3px 8px #e8e7e6;
 }
 
 .MyTaskStatusCircleInprogress {
   float: right;
-
   font-size: 23px;
-
   color: #93c47dff !important;
 }
 
 .MyTaskStatusCircleDuePast {
   float: right;
-
   font-size: 23px;
-
   color: #ff0000ff;
 }
 
 .MyTaskStatusCircleNew {
   float: right;
-
   font-size: 23px;
-
   color: #6d9eebff;
 }
 
@@ -526,4 +520,30 @@ nav {
 .card-bg:hover {
   transform: scale(1.02);
   transition: all 0.3s;
+}
+
+.createTaskMandatoryLabel {
+  font-family: Roboto (Light);
+  border-bottom: 1px solid #dee2e6 !important;
+  font-size: 11px;
+}
+
+.fontSize11 {
+  font-size: 11px;
+}
+
+.css-1s2u09g-control {
+  border-style: none !important;
+}
+.css-14el2xx-placeholder {
+  color: #ff0000ff !important;
+  font-size: 11px !important;
+}
+
+::-webkit-input-placeholder {
+  color: #ff0000ff;
+}
+
+::-moz-placeholder {
+  color: #ff0000ff;
 }

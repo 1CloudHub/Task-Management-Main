@@ -23,7 +23,7 @@ import { FiPieChart } from "react-icons/fi";
 import { FaChartPie, FaList } from "react-icons/fa";
 import { FaPaperclip } from "react-icons/fa";
 
-function NavBar({ logoutClick }) {
+function NavBar({ logoutClick, handleChangeFileData }) {
   const navigateTo = useNavigate();
   const logout = () => {
     navigateTo("/");
@@ -69,6 +69,9 @@ function NavBar({ logoutClick }) {
     }
   };
   const [showGraphIcon, setShowGraphIcon] = useState(true);
+  const fileUpload = () => {
+    document.getElementById("fileAttach").click();
+  };
 
   return (
     <div>
@@ -104,7 +107,14 @@ function NavBar({ logoutClick }) {
               )
             ) : window.location.pathname == "/AddTask" ? (
               <span className="mobile-icons">
-                <FaPaperclip />
+                <FaPaperclip onClick={fileUpload} />
+                <input
+                  type="file"
+                  id="fileAttach"
+                  className="d-none"
+                  multiple
+                  onChange={handleChangeFileData}
+                />
               </span>
             ) : (
               // onClick={fileAttachId}

@@ -1,10 +1,4 @@
-import {
-  ApolloClient,
-  gql,
-  InMemoryCache,
-  useLazyQuery,
-  useQuery,
-} from "@apollo/client";
+import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client";
 import { React, useEffect, useState } from "react";
 import { Modal, Tab, Tabs } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
@@ -26,9 +20,12 @@ const FILTERED_TASK_QUERY = gql`
       taskId
       categoryId
       createdBy
+      createdByName
+      statusName
       currentAssignee
+      currentAssigneeName
       dueDate {
-        formatString(format: "MM-dd-yyyy")
+        formatString(format: "dd-MMM-yy")
       }
     }
   }
@@ -59,7 +56,7 @@ const client = new ApolloClient({
 function Dashboard({ logoutClick, userDetails }) {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState(new Date());
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryId, setCategoryId] = useState();
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
     setCategoryId(selectedValue.target.value);
@@ -76,8 +73,38 @@ function Dashboard({ logoutClick, userDetails }) {
   const [handlerResponse, setHandlerResponse] = useState();
   const [watcherResponse, setWatcherResponse] = useState();
   const [creatorResponse, setCreatorResponse] = useState();
+  const today = new Date();
 
-  const clientCallforHandlerResponse = (sortType = "DESC") => {
+  const currentWeek = () => {
+    let d = new Date(new Date());
+
+    const lastWeekDate = new Date(
+      d.getFullYear(),
+      d.getMonth(),
+      d.getDate() - 7
+    );
+    console.log(lastWeekDate);
+    let formatedDate = formatDate(lastWeekDate);
+    return formatedDate;
+  };
+
+  const formatDate = (date) => {
+    var d = new Date(date),
+      month = "" + (d.getMonth() + 1),
+      day = "" + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
+
+    return [year, month, day].join("-");
+  };
+
+  const clientCallforHandlerResponse = (
+    sortType = "DESC",
+    weekStart,
+    endWeek
+  ) => {
     client
       .query({
         query: FILTERED_TASK_QUERY,
@@ -87,10 +114,15 @@ function Dashboard({ logoutClick, userDetails }) {
             size: 10,
             filters: [
               {
-                filterKey: "categoryId",
-                operator: "EQUAL",
-                values: ["1"],
+                filterKey: "dueDate",
+                operator: "BETWEEN",
+                values: [weekStart, endWeek],
               },
+              // {
+              //   filterKey: "currentAssignee",
+              //   operator: "EQUAL",
+              //   values: ["1"],
+              // },
             ],
             sorts: [
               {
@@ -106,7 +138,11 @@ function Dashboard({ logoutClick, userDetails }) {
       })
       .catch((err) => console.error(err));
   };
-  const clientCallforCreatorResponse = (sortType = "DESC") => {
+  const clientCallforCreatorResponse = (
+    sortType = "DESC",
+    weekStart,
+    endWeek
+  ) => {
     client
       .query({
         query: FILTERED_TASK_QUERY,
@@ -116,10 +152,15 @@ function Dashboard({ logoutClick, userDetails }) {
             size: 10,
             filters: [
               {
-                filterKey: "createdBy",
-                operator: "EQUAL",
-                values: ["1"],
+                filterKey: "dueDate",
+                operator: "BETWEEN",
+                values: [weekStart, endWeek],
               },
+              // {
+              //   filterKey: "dueDate",
+              //   operator: "BETWEEN",
+              //   values: [weekStart, endWeek],
+              // },
             ],
             sorts: [
               {
@@ -137,18 +178,18 @@ function Dashboard({ logoutClick, userDetails }) {
       .catch((err) => console.error(err));
   };
 
-  useEffect(() => {
-    clientCallforHandlerResponse("DESC");
-    clientCallforCreatorResponse("DESC");
-  }, []);
-
-  const today = new Date();
-
   const nextweek = new Date(
     today.getFullYear(),
     today.getMonth(),
     today.getDate() - 7
   );
+
+  useEffect(() => {
+    let startWeek = currentWeek();
+    let endWeek = formatDate(new Date());
+    clientCallforHandlerResponse("DESC", startWeek, endWeek);
+    clientCallforCreatorResponse("DESC", startWeek, endWeek);
+  }, []);
 
   const [defDescSortHandler, setDefSortHandler] = useState(true);
   const [defDescSortCreator, setDefSortCreator] = useState(true);
@@ -181,7 +222,8 @@ function Dashboard({ logoutClick, userDetails }) {
   };
 
   const submitFilter = (e) => {
-    e.preventDefault();
+    console.log("submit", e.target.name);
+    let tabType = e.target.name;
     if (showViewDocPopup) {
       setShowViewDocPopup(!showViewDocPopup);
     }
@@ -189,33 +231,19 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log(startDate ? startDate : nextweek);
     console.log(endDate);
     console.log(categoryId);
-    client
-      .query({
-        query: FILTERED_TASK_QUERY,
-        variables: {
-          request: {
-            page: 0,
-            size: 10,
-            filters: [
-              {
-                filterKey: "categoryId",
-                operator: "EQUAL",
-                values: [categoryId],
-              },
-            ],
-            sorts: [
-              {
-                key: "status",
-                direction: "DESC",
-              },
-            ],
-          },
-        },
-      })
-      .then((response) => {
-        setHandlerResponse(response);
-      })
-      .catch((err) => console.error(err));
+    let stDate = formatDate(startDate ? startDate : nextweek);
+    let edDate = formatDate(endDate);
+    console.log(stDate);
+    console.log(edDate);
+
+    if (tabType == "handler") {
+      clientCallforHandlerResponse("DESC", stDate, edDate);
+    } else {
+      clientCallforCreatorResponse("DESC", stDate, edDate);
+    }
+
+    e.preventDefault();
+    return;
   };
   return (
     <div>
@@ -246,14 +274,27 @@ function Dashboard({ logoutClick, userDetails }) {
                     handleCategoryChange={handleCategoryChange}
                     handleStart={handleStart}
                     handleEnd={handleEnd}
+                    tabType={"handler"}
                   />
-                  <CardList response={handlerResponse} />
-                  <div className="show-mobile-icons">
-                    <div>
+                  {handlerResponse.data.getFilteredTasks.length == 0 ? (
+                    <>
+                      <br />
+                      <div className="card d-flex justify-content-center align-items-center text-danger">
+                        <div className="card-body">No data</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
                       <CardList response={handlerResponse} />
-                    </div>
-                  </div>
-                  <Graphs response={handlerResponse} />
+                      <div className="show-mobile-icons">
+                        <div>
+                          <CardList response={handlerResponse} />
+                        </div>
+                      </div>
+                      <Graphs response={handlerResponse} />
+                    </>
+                  )}
                 </>
               )}
             </Tab>
@@ -291,19 +332,32 @@ function Dashboard({ logoutClick, userDetails }) {
                     handleEyeIconClick={handleEyeIconClick}
                     categoryResponse={categoryResponse}
                     submitFilter={submitFilter}
-                    startDate={nextweek}
+                    startDate={startDate ? startDate : nextweek}
                     endDate={endDate}
                     handleCategoryChange={handleCategoryChange}
                     handleStart={handleStart}
                     handleEnd={handleEnd}
+                    tabType={"creator"}
                   />
-                  <CardList response={creatorResponse} />
-                  <div className="show-mobile-icons">
-                    <div>
+                  {creatorResponse.data.getFilteredTasks.length == 0 ? (
+                    <>
+                      <br />
+                      <div className="card d-flex justify-content-center align-items-center text-danger">
+                        <div className="card-body">No data</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
                       <CardList response={creatorResponse} />
-                    </div>
-                  </div>
-                  <Graphs response={creatorResponse} />
+                      <div className="show-mobile-icons">
+                        <div>
+                          <CardList response={creatorResponse} />
+                        </div>
+                      </div>
+                      <Graphs response={creatorResponse} />
+                    </>
+                  )}
                 </>
               )}
             </Tab>
@@ -322,7 +376,7 @@ function Dashboard({ logoutClick, userDetails }) {
           <form onSubmit={submitFilter}>
             <div className="row">
               <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                <label className=" w-100">
+                <label className=" w-100 mb-1">
                   {" "}
                   <span className="filter-span-header">Start Date</span>
                   <div className="d-flex form-control cursor-pointer ">
@@ -340,7 +394,7 @@ function Dashboard({ logoutClick, userDetails }) {
                 </label>
               </div>
               <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                <label className="w-100">
+                <label className="w-100 mb-1">
                   {" "}
                   <span className="filter-span-header">End Date</span>
                   <div className="d-flex form-control cursor-pointer ">

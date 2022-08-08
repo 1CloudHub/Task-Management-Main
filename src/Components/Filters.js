@@ -14,6 +14,7 @@ function Filters({
   handleStart,
   handleCategoryChange,
   handleEnd,
+  tabType,
 }) {
   return (
     <div>
@@ -39,10 +40,10 @@ function Filters({
                   <FaFilter />
                 </Accordion.Header>
                 <Accordion.Body>
-                  <form onSubmit={submitFilter}>
+                  <form name={tabType} onSubmit={submitFilter}>
                     <div className="row">
                       <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                        <label className=" w-100">
+                        <label className=" w-100 ">
                           {" "}
                           <span className="filter-span-header">Start Date</span>
                           <div className="d-flex form-control cursor-pointer ">
@@ -60,7 +61,7 @@ function Filters({
                         </label>
                       </div>
                       <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
-                        <label className="w-100">
+                        <label className="w-100 ">
                           {" "}
                           <span className="filter-span-header">End Date</span>
                           <div className="d-flex form-control cursor-pointer ">
@@ -81,28 +82,30 @@ function Filters({
                       <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
                         <label>
                           <span className="filter-span-header">Category</span>{" "}
+                          <select
+                            onChange={handleCategoryChange}
+                            className=" form-control"
+                          >
+                            <option value="">All</option>
+                            {categoryResponse.data &&
+                              categoryResponse.data.getCategories.map(
+                                (item, index) => {
+                                  return (
+                                    <option key={index} value={item.categoryId}>
+                                      {item.name}
+                                    </option>
+                                  );
+                                }
+                              )}
+                          </select>
                         </label>
-                        <select
-                          onChange={handleCategoryChange}
-                          className=" form-control"
-                        >
-                          <option value="">All</option>
-                          {categoryResponse.data &&
-                            categoryResponse.data.getCategories.map(
-                              (item, index) => {
-                                return (
-                                  <option key={index} value={item.categoryId}>
-                                    {item.name}
-                                  </option>
-                                );
-                              }
-                            )}
-                        </select>
                       </div>
                       <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
                         <div className="text-center pt-3">
                           <button
-                            type="button"
+                            type="submit"
+                            name={tabType}
+                            value={tabType}
                             className="btn btn-clr rounded-0 filter-btn-submit"
                           >
                             submit

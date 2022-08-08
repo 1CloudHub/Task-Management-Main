@@ -3,75 +3,6 @@ import ReactEcharts from "echarts-for-react";
 import APIService from "../../Services/APIService";
 
 function PieChart({ getChartResponse }) {
-  let datas = {
-    getFilteredTasks: [
-      {
-        status: 1,
-        dueDate: {
-          formatString: "07-20-2022",
-        },
-      },
-      {
-        status: 1,
-        dueDate: {
-          formatString: "07-20-2022",
-        },
-      },
-      {
-        status: 1,
-        dueDate: {
-          formatString: "07-21-2022",
-        },
-      },
-      {
-        status: 1,
-        dueDate: {
-          formatString: "07-22-2022",
-        },
-      },
-      {
-        status: 1,
-        dueDate: {
-          formatString: "23-07-2022",
-        },
-      },
-      {
-        status: 2,
-        dueDate: {
-          formatString: "07-23-2022",
-        },
-      },
-      {
-        status: 2,
-        dueDate: {
-          formatString: "07-23-2022",
-        },
-      },
-      {
-        status: 1,
-        dueDate: {
-          formatString: "07-24-2022",
-        },
-      },
-      {
-        status: 0,
-        dueDate: {
-          formatString: "07-18-2022",
-        },
-      },
-      {
-        status: 0,
-        dueDate: {
-          formatString: "07-01-2022",
-        },
-      },
-    ],
-  };
-  let currDate = new Date();
-  useEffect(() => {
-    const todayDate = formatDate(new Date());
-    // console.log(todayDate);
-  }, []);
   const formatDate = (date) => {
     var d = new Date(date),
       month = "" + (d.getMonth() + 1),
@@ -179,7 +110,7 @@ function PieChart({ getChartResponse }) {
         radius: ["90%", "70%"],
 
         labelLine: {
-          length: 30,
+          length: 10,
         },
 
         label: {
@@ -191,7 +122,7 @@ function PieChart({ getChartResponse }) {
           rich: {
             a: {
               color: "#6E7056",
-              lineHeight: 22,
+              lineHeight: 20,
               align: "center",
             },
             hr: {
@@ -202,15 +133,15 @@ function PieChart({ getChartResponse }) {
             },
             b: {
               color: "#4C5058",
-              fontSize: 14,
+              fontSize: 11,
               fontWeight: "bold",
-              lineHeight: 33,
+              lineHeight: 11,
             },
             per: {
               color: "#fff",
               backgroundColor: "#4C5058",
               padding: [3, 4],
-              borderRadius: 4,
+              borderRadius: 0,
             },
           },
         },
@@ -222,7 +153,7 @@ function PieChart({ getChartResponse }) {
   return (
     <div>
       {" "}
-      <ReactEcharts style={{ height: "70vh" }} option={option} />
+      <ReactEcharts style={{ height: "60vh" }} option={option} />
     </div>
   );
 }

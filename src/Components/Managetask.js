@@ -26,7 +26,13 @@ const VIEW_TASK_QUERY = gql`
       currentAssignee
       createdBy
       resolvedBy
+      statusName
+      currentAssigneeName
+      createdByName
       resolvedDate {
+        formatString(format: "dd/MM/yyyy")
+      }
+      dueDate {
         formatString(format: "dd/MM/yyyy")
       }
       status
@@ -69,7 +75,7 @@ function Managetask({ logoutClick, userDetails }) {
   let taskId = parseInt(id);
 
   const response = useQuery(VIEW_TASK_QUERY, {
-    variables: { taskId: 27 },
+    variables: { taskId: taskId },
   });
   const viewTaskValues = response.data;
   console.log(viewTaskValues);
@@ -219,9 +225,9 @@ function Managetask({ logoutClick, userDetails }) {
         <h5 className="themeColor">
           {" "}
           View Task / Edit Task &nbsp;
-          <span title="edit" className="assignbutton">
+          {/* <span title="edit" className="assignbutton">
             <AiFillEdit />
-          </span>
+          </span> */}
         </h5>
 
         <div className="row">
@@ -287,7 +293,7 @@ function Managetask({ logoutClick, userDetails }) {
             </div>
             <div className="mt-2">
               <label> Status </label>
-              <div>{viewTaskValues && viewTaskValues.getTask.status}</div>
+              <div>{viewTaskValues && viewTaskValues.getTask.statusName}</div>
             </div>
             <div className="mt-2">
               <label> Last Status TimeStamp </label>
@@ -322,7 +328,9 @@ function Managetask({ logoutClick, userDetails }) {
             </div>
             <div className="mt-2">
               <label> Created By </label>
-              <input type="text" className="form-control mt-1" />
+              <div>
+                {viewTaskValues && viewTaskValues.getTask.createdByName}
+              </div>
             </div>
           </div>
           <div className="col-md-1"></div>
@@ -350,7 +358,9 @@ function Managetask({ logoutClick, userDetails }) {
             </div>
             <div className="mt-2">
               <label> Assigned To </label>
-              <input type="text" className="form-control mt-1" />
+              <div>
+                {viewTaskValues && viewTaskValues.getTask.currentAssigneeName}
+              </div>
             </div>
             <div className="mt-2">
               <label className="mt-1 w-100">

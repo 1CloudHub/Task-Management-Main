@@ -10,14 +10,13 @@ function Cards({ item }) {
         <div className="d-flex">
           {" "}
           <div className="w-75 ml-2">
-            {" "}
             <div>
               {" "}
               <b> {item.title}</b>
             </div>
             <div>
               {" "}
-              {item.createdBy} <FaArrowRight /> {item.currentAssignee}{" "}
+              {item.createdByName} <FaArrowRight /> {item.currentAssigneeName}{" "}
             </div>
             <div>
               {" "}
@@ -26,12 +25,12 @@ function Cards({ item }) {
           </div>
           <div className="floatRight mt-4">
             <div>
-              {" "}
-              {item.status == "Due Past" ? (
+              {item.statusName}{" "}
+              {item.statusName == "Due Past" ? (
                 <FaCircle className="MyTaskStatusCircleDuePast" />
-              ) : item.status == "InProgress" ? (
+              ) : item.statusName == "InProgress" ? (
                 <FaCircle className="MyTaskStatusCircleInprogress" />
-              ) : item.status == "New" ? (
+              ) : item.statusName == "New" ? (
                 <FaCircle className="MyTaskStatusCircleNew" />
               ) : (
                 ""

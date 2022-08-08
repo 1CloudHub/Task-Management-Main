@@ -207,6 +207,8 @@ function Newtask({ logoutClick, userDetails }) {
   const handleEyeIconClick = (file) => {
     setSelectedFileName(file.name);
     setPopUpImage(URL.createObjectURL(file));
+    setOpenPdfFile(URL.createObjectURL(file));
+    setFileType(file.type);
     setShowViewDocPopup(true);
   };
   const handleCloseClick = () => setShowViewDocPopup(false);
@@ -227,6 +229,7 @@ function Newtask({ logoutClick, userDetails }) {
     setCharsLeftDescription(max_chars - value.length);
   };
 
+  const [fileType, setFileType] = useState();
   const handleChangeFileData = (event) => {
     // console.log(event);
     setUploadedFile([...event.target.files]);
@@ -488,11 +491,12 @@ function Newtask({ logoutClick, userDetails }) {
                     }
                   ></Select>
                 </div>
-                {/* <div className="mt-5">
+                <div className="mt-5">
                   <Select
                     name="watcher"
-                    className="rounded-0"
+                    className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
                     required={true}
+                    placeholder="watcher"
                     options={
                       userResponse.data &&
                       userResponse.data.getUsers.map(
@@ -510,7 +514,7 @@ function Newtask({ logoutClick, userDetails }) {
                     // }}
                     isMulti
                   />
-                </div> */}
+                </div>
 
                 <div className="mt-5">
                   <div className="d-flex cursor-pointer mt-1">
@@ -562,8 +566,15 @@ function Newtask({ logoutClick, userDetails }) {
             <FaTimes onClick={handleCloseClick} />{" "}
           </Modal.Header>
           <Modal.Body>
-            <img src={popUpImage} />
-            <Viewer fileUrl={openPdfFile} />
+            {fileType == "application/pdf" ? (
+              <Viewer fileUrl={openPdfFile} />
+            ) : fileType == "image/png" ? (
+              <img src={popUpImage} />
+            ) : (
+              ""
+            )}
+            {/* <img src={popUpImage} />
+            <Viewer fileUrl={openPdfFile} /> */}
           </Modal.Body>
         </Modal>
         <Footer />
