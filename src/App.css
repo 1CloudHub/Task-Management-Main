@@ -439,7 +439,7 @@ ul.text-danger.dashboard-tabs.nav.nav-tabs {
 }
 .accordion-button:not(.collapsed) {
   color: #000000;
-  background-color: #ffe29d;
+  background-color: white !important;
   box-shadow: inset 0 -1px 0 rgb(0 0 0 / 13%);
 }
 
@@ -570,4 +570,13 @@ Select:focus {
 
 .width15 {
   width: 15% !important;
+}
+
+.accordion-button:focus {
+  box-shadow: none !important;
+}
+
+.btn-check:focus .btn-primary,
+.btn-primary:focus {
+  box-shadow: 0 0 0 0.25rem rgb(255, 255, 255) !important;
 }

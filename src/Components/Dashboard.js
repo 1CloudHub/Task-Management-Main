@@ -3,7 +3,7 @@ import { React, useEffect, useState } from "react";
 import { Modal, Tab, Tabs } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
-import { FaPlus, FaTimes } from "react-icons/fa";
+import { FaFilter, FaPlus, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import CardList from "./CardList";
 import Filters from "./Filters";
@@ -273,25 +273,25 @@ function Dashboard({ logoutClick, userDetails }) {
           >
             {/* handler */}
             <Tab className="dashboard-tab" eventKey="handle" title="Handler">
+              <Filters
+                handleSorter={handleSorterforHandler}
+                handleEyeIconClick={handleEyeIconClick}
+                categoryResponse={categoryResponse}
+                submitFilter={submitFilter}
+                startDate={startDate ? startDate : nextweek}
+                endDate={endDate}
+                handleCategoryChange={handleCategoryChange}
+                handleStart={handleStart}
+                handleEnd={handleEnd}
+                tabType={"handler"}
+                defSortType={defDescSortHandler}
+              />
               {handlerResponse && (
                 <>
-                  <Filters
-                    handleSorter={handleSorterforHandler}
-                    handleEyeIconClick={handleEyeIconClick}
-                    categoryResponse={categoryResponse}
-                    submitFilter={submitFilter}
-                    startDate={startDate ? startDate : nextweek}
-                    endDate={endDate}
-                    handleCategoryChange={handleCategoryChange}
-                    handleStart={handleStart}
-                    handleEnd={handleEnd}
-                    tabType={"handler"}
-                    defSortType={defDescSortHandler}
-                  />
                   {handlerResponse.data.getFilteredTasks.length == 0 ? (
                     <>
                       <br />
-                      <div className="card d-flex justify-content-center align-items-center text-danger">
+                      <div className="card d-flex justify-content-center align-items-center text-danger border-0">
                         <div className="card-body">No data</div>
                       </div>
                     </>
@@ -337,26 +337,26 @@ function Dashboard({ logoutClick, userDetails }) {
             </Tab>
             {/* Creator */}
             <Tab eventKey="create" title="Creator">
+              <Filters
+                handleSorter={handleSorterforCreator}
+                handleEyeIconClick={handleEyeIconClick}
+                categoryResponse={categoryResponse}
+                submitFilter={submitFilter}
+                startDate={startDate ? startDate : nextweek}
+                endDate={endDate}
+                handleCategoryChange={handleCategoryChange}
+                handleStart={handleStart}
+                handleEnd={handleEnd}
+                tabType={"creator"}
+                defSortType={defDescSortCreator}
+              />
               {creatorResponse && (
                 <>
-                  <Filters
-                    handleSorter={handleSorterforCreator}
-                    handleEyeIconClick={handleEyeIconClick}
-                    categoryResponse={categoryResponse}
-                    submitFilter={submitFilter}
-                    startDate={startDate ? startDate : nextweek}
-                    endDate={endDate}
-                    handleCategoryChange={handleCategoryChange}
-                    handleStart={handleStart}
-                    handleEnd={handleEnd}
-                    tabType={"creator"}
-                    defSortType={defDescSortCreator}
-                  />
                   {creatorResponse.data.getFilteredTasks.length == 0 ? (
                     <>
                       <br />
-                      <div className="card d-flex justify-content-center align-items-center text-danger">
-                        <div className="card-body">No data</div>
+                      <div className="card d-flex justify-content-center align-items-center text-danger border-0">
+                        <div className="card-body border-0">No data</div>
                       </div>
                     </>
                   ) : (
