@@ -325,9 +325,12 @@ ul.text-danger.dashboard-tabs.nav.nav-tabs {
   outline: none;
   box-shadow: none;
 }
-
+.uploaded-file {
+  overflow-y: "scroll";
+  height: "25vh";
+}
 .charLeftClass {
-  font-size: small;
+  font-size: 9px;
   float: right;
   background: red;
   color: white;
@@ -540,10 +543,31 @@ nav {
   font-size: 11px !important;
 }
 
+.span-error {
+  font-size: 9px;
+}
 ::-webkit-input-placeholder {
   color: #ff0000ff;
 }
 
 ::-moz-placeholder {
   color: #ff0000ff;
+}
+
+input:focus,
+textarea:focus,
+Select:focus {
+  outline: none;
+}
+
+.css-319lph-ValueContainer {
+  padding: 0px !important;
+}
+
+.width85 {
+  width: 85% !important;
+}
+
+.width15 {
+  width: 15% !important;
 }

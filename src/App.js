@@ -44,7 +44,7 @@ function App() {
   }, []);
 
   const loginSuccess = (e) => {
-    console.log(e.profileObj);
+    console.log(e);
     setUserDetails({
       username: e.profileObj.givenName,
       email: e.profileObj.email,

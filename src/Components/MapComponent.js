@@ -5,12 +5,39 @@ import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { toast } from "react-toastify";
 
 function MapComponent({ mapError, position, mapErrorTxt }) {
-  const containerStyle = {
-    width: "30vw",
-    height: "55vh",
-    borderRadius: "30em",
-  };
+  const [windowSize, setWindowSize] = useState(getWindowSize());
+  // const [containerStyle, setContainerStyle] = useState();
+  function getWindowSize() {
+    const { innerWidth, innerHeight } = window;
+    return { innerWidth, innerHeight };
+  }
 
+  useEffect(() => {
+    function handleWindowResize() {
+      setWindowSize(getWindowSize());
+    }
+    console.log(windowSize);
+    window.addEventListener("resize", handleWindowResize);
+
+    return () => {
+      window.removeEventListener("resize", handleWindowResize);
+    };
+  }, [windowSize]);
+
+  var containerStyle = {};
+  if (windowSize.innerWidth < 500) {
+    containerStyle = {
+      width: "60vw",
+      height: "40vh",
+      borderRadius: "30em",
+    };
+  } else {
+    containerStyle = {
+      width: "20vw",
+      height: "37vh",
+      borderRadius: "30em",
+    };
+  }
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: "AIzaSyBs7rvWtf9wbCNzqG4LPfpxM4AQH5wVm1o",

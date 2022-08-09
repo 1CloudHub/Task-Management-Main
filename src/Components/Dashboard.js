@@ -134,6 +134,7 @@ function Dashboard({ logoutClick, userDetails }) {
         },
       })
       .then((response) => {
+        console.log("handler response : ", response);
         setHandlerResponse(response);
       })
       .catch((err) => console.error(err));
@@ -195,22 +196,31 @@ function Dashboard({ logoutClick, userDetails }) {
   const [defDescSortCreator, setDefSortCreator] = useState(true);
 
   const handleSorterforHandler = () => {
-    // console.log("click");
+    console.log("sort for handler   ");
+
+    let stDate = formatDate(startDate);
+    let edDate = formatDate(endDate);
+    console.log(stDate);
+    console.log(edDate);
     setDefSortHandler(!defDescSortHandler);
     if (defDescSortHandler) {
-      clientCallforHandlerResponse("ASC");
+      clientCallforHandlerResponse("ASC", stDate, edDate);
     } else {
-      clientCallforHandlerResponse("DESC");
+      clientCallforHandlerResponse("DESC", stDate, edDate);
     }
   };
 
   const handleSorterforCreator = () => {
-    // console.log("click for creator");
+    console.log("sort for creator");
+    let stDate = formatDate(startDate);
+    let edDate = formatDate(endDate);
+    console.log(stDate);
+    console.log(edDate);
     setDefSortCreator(!defDescSortCreator);
     if (defDescSortCreator) {
-      clientCallforCreatorResponse("ASC");
+      clientCallforCreatorResponse("ASC", stDate, edDate);
     } else {
-      clientCallforCreatorResponse("DESC");
+      clientCallforCreatorResponse("DESC", stDate, edDate);
     }
   };
 
@@ -245,13 +255,14 @@ function Dashboard({ logoutClick, userDetails }) {
     e.preventDefault();
     return;
   };
+
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
       {/* <AppNavBar />
       <SideNavDrawer /> */}
       <br />
-      <br />
+      {/* <br /> */}
 
       <div className="main-container">
         <div className="container-fluid">
@@ -275,6 +286,7 @@ function Dashboard({ logoutClick, userDetails }) {
                     handleStart={handleStart}
                     handleEnd={handleEnd}
                     tabType={"handler"}
+                    defSortType={defDescSortHandler}
                   />
                   {handlerResponse.data.getFilteredTasks.length == 0 ? (
                     <>
@@ -338,6 +350,7 @@ function Dashboard({ logoutClick, userDetails }) {
                     handleStart={handleStart}
                     handleEnd={handleEnd}
                     tabType={"creator"}
+                    defSortType={defDescSortCreator}
                   />
                   {creatorResponse.data.getFilteredTasks.length == 0 ? (
                     <>

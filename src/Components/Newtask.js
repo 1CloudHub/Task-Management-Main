@@ -12,6 +12,7 @@ import { Table, Modal } from "react-bootstrap";
 import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
 import Select from "react-select";
 import { Viewer } from "@react-pdf-viewer/core";
+import axios from "axios";
 
 const CATEGORY_QUERY = gql`
   {
@@ -52,13 +53,11 @@ const CREATE_TASK = gql`
       createdBy
       categoryId
       subCategoryId
-      creationLocLatitude
-      creationLocLongitude
+
       subSubCategoryId
       dueDate {
         formatString(format: "dd/MM/yyyy")
       }
-      fileIds
     }
   }
 `;
@@ -72,6 +71,8 @@ const GET_USERS_QUERY = gql`
     }
   }
 `;
+
+const fileUploadURL = "http://3.110.3.72/events/upload";
 
 function Newtask({ logoutClick, userDetails }) {
   // Variable Declaration start
@@ -146,7 +147,7 @@ function Newtask({ logoutClick, userDetails }) {
     SUB_SUB_CATEGORY_QUERY
   );
   const categoryResponse = useQuery(CATEGORY_QUERY);
-  console.log(categoryResponse);
+  // console.log(categoryResponse);
   const userResponse = useQuery(GET_USERS_QUERY);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
   // GRAPHQL query request and response end
@@ -236,29 +237,68 @@ function Newtask({ logoutClick, userDetails }) {
     setFile(event.target.files);
     let array = [];
     array.push([event.target.files]);
-    setCreateTaskInput((prevState) => ({
-      ...prevState,
-      fileIds: array,
-    }));
+
     console.log(createTaskInput.fileIds);
   };
+  const formData = new FormData();
+  const config = {
+    headers: {
+      "Accept-Encoding": "gzip,deflate,br",
+      Connection: "keep-alive",
+      userId: "18",
+      "Authentication-Token":
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOCIsImlhdCI6MTY1OTA5NDkxMiwiZXhwIjoxNjc3MDk0OTEyfQ.WwSyLTd1FQYJs5u4jEFl0U6ayn6g5Wlx-mOgNfthAog",
+      "Access-Control-Allow-Origin": "*",
+    },
+  };
+  var fileIdArray = [];
 
   const [SubmitTask] = useMutation(CREATE_TASK);
+  const fileUploadAll = () => {
+    uploadedFile.forEach((element, index, array) => {
+      formData.append("file", file[0]);
+      axios
+        .post(fileUploadURL, formData, config)
+        .then((response) => {
+          console.log("file API response : ", response.data.fileId);
+          let resp = response.data.fileId;
+          fileIdArray.push(resp);
+          console.log("fileId Array list ::", fileIdArray);
+          setCreateTaskInput((prevState) => ({
+            ...prevState,
+            fileIds: fileIdArray,
+          }));
+          console.log(createTaskInput.fileIds);
+        })
+        .catch((error) => {
+          console.log("file API error:", error);
+        });
+    });
+  };
+
   const onSubmit = (data) => {
-    console.log(createTaskInput);
-    if (data) {
+    console.log("submit clicked");
+
+    console.log(createTaskInput.categoryId);
+    // return;
+    // uploadedFile.forEach((element, index, array) => {
+    //   getFileIds(file);
+    // });
+
+    if (uploadedFile.length === createTaskInput.fileIds.length) {
+      console.log("inisde if ....");
       const res = SubmitTask({
         variables: {
           input: {
             title: createTaskInput.title,
-            categoryId: createTaskInput.categoryId,
-            subCategoryId: createTaskInput.subCategoryId,
+            categoryId: parseInt(createTaskInput.categoryId),
+            subCategoryId: parseInt(createTaskInput.subCategoryId),
             description: createTaskInput.description,
             fileIds: createTaskInput.fileIds,
-            currentAssignee: createTaskInput.currentAssignee,
-            creationLocLatitude: createTaskInput.creationLocLatitude,
-            creationLocLongitude: createTaskInput.creationLocLongitude,
-            dueDate: createTaskInput.dueDate,
+            currentAssignee: parseInt(createTaskInput.currentAssignee),
+            // creationLocLatitude: createTaskInput.creationLocLatitude,
+            // creationLocLongitude: createTaskInput.creationLocLongitude,
+            dueDate: "2022-08-20",
           },
         },
       });
@@ -266,6 +306,9 @@ function Newtask({ logoutClick, userDetails }) {
     } else {
       console.log("fill all required fields");
     }
+
+    console.log(createTaskInput);
+    console.log(uploadedFile.length);
 
     // if (data != null) {
     //   // console.log(data);
@@ -300,9 +343,9 @@ function Newtask({ logoutClick, userDetails }) {
       <div className="container main-container mb-5">
         <div>
           <form ref={formref} onSubmit={handleSubmit(onSubmit)}>
-            <div className="row ">
+            <div className="row mt-2">
               <div className="col-xs-12 col-sm-12 col-md-6  ">
-                <div className="mt-2">
+                <div className="">
                   <input
                     type="text"
                     // className="form-control"
@@ -314,10 +357,10 @@ function Newtask({ logoutClick, userDetails }) {
                   />
 
                   {errors.subjectLine && (
-                    <p className="text-danger"> Title is required</p>
+                    <p className="text-danger span-error"> Title is required</p>
                   )}
                 </div>
-                <div className="mt-5">
+                <div className="mt-3">
                   <textarea
                     placeholder="Description"
                     name="description"
@@ -326,19 +369,22 @@ function Newtask({ logoutClick, userDetails }) {
                     className="box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
                   />
                   {errors.description && (
-                    <p className="text-danger"> Description is required</p>
+                    <p className="text-danger span-error">
+                      {" "}
+                      Description is required
+                    </p>
                   )}
                   <p className="charLeftClass">
                     Document cannot exceed 200 characters
                     {/* Document cannot exceed 200 characters :  {chars_left_description} */}
                   </p>
                 </div>
-                <div className="mt-5">
+                <div className=" mt-3">
                   <Select
                     name="category"
                     placeholder="Category"
                     // className="mt-2 form-control"
-                    className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    className=" box shadow-none border-0 border-bottom  createTaskMandatoryLabel w-100"
                     options={
                       categoryResponse.data &&
                       categoryResponse.data.getCategories.map(
@@ -353,18 +399,21 @@ function Newtask({ logoutClick, userDetails }) {
                         variables: {
                           categoryId: setCreateTaskInput((prevState) => ({
                             ...prevState,
-                            categoryId: selectedOption,
+                            categoryId: selectedOption.value,
                           })),
                         },
                       });
                     }}
                   ></Select>
                   {errors.category && (
-                    <p className="text-danger"> Category is required</p>
+                    <p className="text-danger span-error">
+                      {" "}
+                      Category is required
+                    </p>
                   )}
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-3">
                   <select
                     name="subcategory"
                     className="mt-2 border-0 border-bottom w-100 fontSize11"
@@ -393,7 +442,7 @@ function Newtask({ logoutClick, userDetails }) {
                       )}
                   </select>
                 </div>
-                <div className="mt-5">
+                <div className="mt-3">
                   <select
                     name="subsubcategory"
                     placeholder="sub sub category"
@@ -423,16 +472,25 @@ function Newtask({ logoutClick, userDetails }) {
                     )}
                   </select>
                 </div>
+                <div className="show-web mt-3">
+                  <input
+                    type="file"
+                    id="file"
+                    name="file"
+                    onChange={handleChangeFileData}
+                    multiple
+                  />
+                </div>
 
-                <div className="mt-5">
+                <div className="mt-3">
                   <div>
                     {uploadedFile && uploadedFile.length > 0 && (
-                      <div className="mt-5">
+                      <div className="">
                         <label className="marginRight1 mt-2">
                           {" "}
                           Attached Files: &nbsp;{" "}
                         </label>
-                        <div style={{ "overflow-y": "scroll", height: "50vh" }}>
+                        <div className="uploaded-file">
                           <Table responsive className="border-0 mt-2">
                             <tbody>
                               {uploadedFile.map((file, index) => {
@@ -462,13 +520,22 @@ function Newtask({ logoutClick, userDetails }) {
                             </tbody>
                           </Table>
                         </div>
+                        <div className="upload-btn d-flex justify-content-end">
+                          <button
+                            type="button"
+                            onClick={fileUploadAll}
+                            className="form-control btn-clr w-25 "
+                          >
+                            Upload
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
               <div className="col-xs-12 col-sm-12 col-md-6 ">
-                <div className="mt-5">
+                <div className="">
                   <Select
                     name="handler"
                     placeholder="Handler"
@@ -477,7 +544,7 @@ function Newtask({ logoutClick, userDetails }) {
                     onChange={(selectedOption) => {
                       setCreateTaskInput((prevState) => ({
                         ...prevState,
-                        currentAssignee: selectedOption,
+                        currentAssignee: selectedOption.value,
                       }));
                     }}
                     options={
@@ -491,7 +558,7 @@ function Newtask({ logoutClick, userDetails }) {
                     }
                   ></Select>
                 </div>
-                <div className="mt-5">
+                <div className="mt-3">
                   <Select
                     name="watcher"
                     className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
@@ -516,7 +583,7 @@ function Newtask({ logoutClick, userDetails }) {
                   />
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-3">
                   <div className="d-flex cursor-pointer mt-1">
                     <ReactDatePicker
                       type="text"
@@ -537,12 +604,12 @@ function Newtask({ logoutClick, userDetails }) {
                     <BsCalendar className="mt-1 border-bottom" />
                   </div>
                 </div>
-                <div className="mt-5 d-flex justify-content-center">
-                  <MapComponent
+                <div className="mt-3 d-flex justify-content-center">
+                  {/* <MapComponent
                     position={position}
                     mapError={mapError}
                     mapErrorTxt={mapErrorTxt}
-                  />
+                  /> */}
                 </div>
               </div>
             </div>
@@ -550,13 +617,13 @@ function Newtask({ logoutClick, userDetails }) {
             <div className="row">
               <div className="col"></div>
 
-              <div className="col"></div>
-              <div className="mt-2 mb-5 col">
+              <div className="col">
                 <button type="submit" className="form-control btn-clr">
                   {" "}
                   Submit{" "}
                 </button>
               </div>
+              <div className="mt-2 mb-5 col"></div>
             </div>
           </form>
         </div>

@@ -16,8 +16,9 @@ const client = new ApolloClient({
     mode: "no-cors",
   },
   headers: {
-    "Authentication-Token": "saldfal00965-klal998-jknj",
-    userId: "1",
+    "Authentication-Token":
+      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOCIsImlhdCI6MTY1OTA5NDkxMiwiZXhwIjoxNjc3MDk0OTEyfQ.WwSyLTd1FQYJs5u4jEFl0U6ayn6g5Wlx-mOgNfthAog",
+    userId: "18",
   },
 });
 root.render(

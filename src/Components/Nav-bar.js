@@ -31,7 +31,7 @@ function NavBar({ logoutClick, handleChangeFileData }) {
 
   let userDetails = localStorage.getItem("userDetail");
   userDetails = JSON.parse(userDetails);
-  console.log(userDetails);
+  // console.log(userDetails);
 
   const [isMobileView, setIsMobileView] = useState(false);
 
@@ -48,18 +48,6 @@ function NavBar({ logoutClick, handleChangeFileData }) {
       itemImage: <AiFillFileAdd className="mb-1" />,
       url: "/AddTask",
     },
-    // {
-    //   id: 3,
-    //   itemName: "View/Edit Task",
-    //   itemImage: <AiFillEdit className="mb-1" />,
-    //   url: "/ManageTask",
-    // },
-    // {
-    //   id: 4,
-    //   itemName: "Task History",
-    //   itemImage: <FaHistory className="mb-1" />,
-    //   url: "/TaskHistory",
-    // },
   ];
 
   const handleSearch = (e) => {
@@ -81,7 +69,7 @@ function NavBar({ logoutClick, handleChangeFileData }) {
             {window.location.pathname == "/MyTask" ? (
               <h6 className="ml-10 mt-2">
                 {" "}
-                <strong> : : MY TASKS </strong>{" "}
+                <strong> :: MY TASKS </strong>{" "}
               </h6>
             ) : window.location.pathname == "/AddTask" ? (
               <h6 className="ml-10 mt-2">
@@ -106,7 +94,7 @@ function NavBar({ logoutClick, handleChangeFileData }) {
                 </span>
               )
             ) : window.location.pathname == "/AddTask" ? (
-              <span className="mobile-icons">
+              <span className="mobile-icons cursor-pointer">
                 <FaPaperclip onClick={fileUpload} />
                 <input
                   type="file"
