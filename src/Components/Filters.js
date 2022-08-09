@@ -98,7 +98,7 @@ function Filters({
                       onChange={handleCategoryChange}
                       className=" form-control"
                     >
-                      <option value="">All</option>
+                      <option value="0">All</option>
                       {categoryResponse.data &&
                         categoryResponse.data.getCategories.map(
                           (item, index) => {

@@ -56,7 +56,7 @@ const client = new ApolloClient({
 function Dashboard({ logoutClick, userDetails }) {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState(new Date());
-  const [categoryId, setCategoryId] = useState();
+  const [categoryId, setCategoryId] = useState(0);
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
     setCategoryId(selectedValue.target.value);
@@ -103,8 +103,45 @@ function Dashboard({ logoutClick, userDetails }) {
   const clientCallforHandlerResponse = (
     sortType = "DESC",
     weekStart,
-    endWeek
+    endWeek,
+    categoryId
   ) => {
+    let inputFilters = [];
+    if (categoryId == 0) {
+      inputFilters = [
+        {
+          filterKey: "dueDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+
+        // {
+        //   filterKey: "currentAssignee",
+        //   operator: "EQUAL",
+        //   values: ["1"],
+        // },
+      ];
+    } else {
+      inputFilters = [
+        {
+          filterKey: "dueDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+        {
+          filterKey: "categoryId",
+          operator: "EQUAL",
+          values: [categoryId],
+        },
+
+        // {
+        //   filterKey: "currentAssignee",
+        //   operator: "EQUAL",
+        //   values: ["1"],
+        // },
+      ];
+    }
+
     client
       .query({
         query: FILTERED_TASK_QUERY,
@@ -112,18 +149,7 @@ function Dashboard({ logoutClick, userDetails }) {
           request: {
             page: 0,
             size: 10,
-            filters: [
-              {
-                filterKey: "dueDate",
-                operator: "BETWEEN",
-                values: [weekStart, endWeek],
-              },
-              // {
-              //   filterKey: "currentAssignee",
-              //   operator: "EQUAL",
-              //   values: ["1"],
-              // },
-            ],
+            filters: inputFilters,
             sorts: [
               {
                 key: "status",
@@ -139,11 +165,48 @@ function Dashboard({ logoutClick, userDetails }) {
       })
       .catch((err) => console.error(err));
   };
+
   const clientCallforCreatorResponse = (
     sortType = "DESC",
     weekStart,
-    endWeek
+    endWeek,
+    categoryId
   ) => {
+    let inputFilters = [];
+    if (categoryId == 0) {
+      inputFilters = [
+        {
+          filterKey: "dueDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+
+        // {
+        //   filterKey: "currentAssignee",
+        //   operator: "EQUAL",
+        //   values: ["1"],
+        // },
+      ];
+    } else {
+      inputFilters = [
+        {
+          filterKey: "dueDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+        {
+          filterKey: "categoryId",
+          operator: "EQUAL",
+          values: [categoryId],
+        },
+
+        // {
+        //   filterKey: "currentAssignee",
+        //   operator: "EQUAL",
+        //   values: ["1"],
+        // },
+      ];
+    }
     client
       .query({
         query: FILTERED_TASK_QUERY,
@@ -151,18 +214,7 @@ function Dashboard({ logoutClick, userDetails }) {
           request: {
             page: 0,
             size: 10,
-            filters: [
-              {
-                filterKey: "dueDate",
-                operator: "BETWEEN",
-                values: [weekStart, endWeek],
-              },
-              // {
-              //   filterKey: "dueDate",
-              //   operator: "BETWEEN",
-              //   values: [weekStart, endWeek],
-              // },
-            ],
+            filters: inputFilters,
             sorts: [
               {
                 key: "status",
@@ -188,8 +240,8 @@ function Dashboard({ logoutClick, userDetails }) {
   useEffect(() => {
     let startWeek = currentWeek();
     let endWeek = formatDate(new Date());
-    clientCallforHandlerResponse("DESC", startWeek, endWeek);
-    clientCallforCreatorResponse("DESC", startWeek, endWeek);
+    clientCallforHandlerResponse("DESC", startWeek, endWeek, categoryId);
+    clientCallforCreatorResponse("DESC", startWeek, endWeek, categoryId);
   }, []);
 
   const [defDescSortHandler, setDefSortHandler] = useState(true);
@@ -197,6 +249,7 @@ function Dashboard({ logoutClick, userDetails }) {
 
   const handleSorterforHandler = () => {
     console.log("sort for handler   ");
+    console.log("categoryId : ", categoryId);
 
     let stDate = formatDate(startDate);
     let edDate = formatDate(endDate);
@@ -204,23 +257,25 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log(edDate);
     setDefSortHandler(!defDescSortHandler);
     if (defDescSortHandler) {
-      clientCallforHandlerResponse("ASC", stDate, edDate);
+      clientCallforHandlerResponse("ASC", stDate, edDate, categoryId);
     } else {
-      clientCallforHandlerResponse("DESC", stDate, edDate);
+      clientCallforHandlerResponse("DESC", stDate, edDate, categoryId);
     }
   };
 
   const handleSorterforCreator = () => {
     console.log("sort for creator");
+    console.log("categoryId : ", categoryId);
+
     let stDate = formatDate(startDate);
     let edDate = formatDate(endDate);
     console.log(stDate);
     console.log(edDate);
     setDefSortCreator(!defDescSortCreator);
     if (defDescSortCreator) {
-      clientCallforCreatorResponse("ASC", stDate, edDate);
+      clientCallforCreatorResponse("ASC", stDate, edDate, categoryId);
     } else {
-      clientCallforCreatorResponse("DESC", stDate, edDate);
+      clientCallforCreatorResponse("DESC", stDate, edDate, categoryId);
     }
   };
 
@@ -234,9 +289,7 @@ function Dashboard({ logoutClick, userDetails }) {
   const submitFilter = (e) => {
     console.log("submit", e.target.name);
     let tabType = e.target.name;
-    if (showViewDocPopup) {
-      setShowViewDocPopup(!showViewDocPopup);
-    }
+
     console.log("submit");
     console.log(startDate ? startDate : nextweek);
     console.log(endDate);
@@ -247,9 +300,9 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log(edDate);
 
     if (tabType == "handler") {
-      clientCallforHandlerResponse("DESC", stDate, edDate);
+      clientCallforHandlerResponse("DESC", stDate, edDate, categoryId);
     } else {
-      clientCallforCreatorResponse("DESC", stDate, edDate);
+      clientCallforCreatorResponse("DESC", stDate, edDate, categoryId);
     }
 
     e.preventDefault();
