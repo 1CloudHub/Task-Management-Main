@@ -1,14 +1,13 @@
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import APIService from "../Services/APIService";
-import Footer from "./Footer";
-import MapComponent from "./MapComponent";
-import NavBar from "./Nav-bar";
-import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
-import { AiFillEdit } from "react-icons/ai";
+import { Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
-import { gql, useLazyQuery, useQuery, useMutation } from "@apollo/client";
+import { ImDownload3 } from "react-icons/im";
+import { useParams } from "react-router-dom";
+import Select from "react-select";
+import Footer from "./Footer";
+import NavBar from "./Nav-bar";
 
 const VIEW_TASK_QUERY = gql`
   query VIEWTASK($taskId: ID!) {
@@ -17,7 +16,7 @@ const VIEW_TASK_QUERY = gql`
       taskGroupId
       categoryId
       createdDate {
-        formatString(format: "dd/MM/yyyy")
+        formatString(format: "dd-MMM-yyyy")
       }
       subCategoryId
       subSubCategoryId
@@ -30,10 +29,10 @@ const VIEW_TASK_QUERY = gql`
       currentAssigneeName
       createdByName
       resolvedDate {
-        formatString(format: "dd/MM/yyyy")
+        formatString(format: "dd-MMM-yyyy")
       }
       dueDate {
-        formatString(format: "dd/MM/yyyy")
+        formatString(format: "dd-MMM-yyyy")
       }
       status
       description
@@ -50,9 +49,25 @@ const CATEGORY_LIST_QUERY = gql`
   }
 `;
 
+const GETCATEGORY_QUERY = gql`
+  query GETCATEGORY($categoryId: ID!) {
+    getCategory(categoryId: $categoryId) {
+      categoryId
+      name
+    }
+  }
+`;
 const SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
   query GETSUBCATEGORYLIST($categoryId: Int!) {
     getSubCategoriesByCategoryId(categoryId: $categoryId) {
+      subCategoryId
+      name
+    }
+  }
+`;
+const SUB_CATEGORY_QUERY = gql`
+  {
+    getSubCategoriesByCategoryId(categoryId: 2) {
       subCategoryId
       name
     }
@@ -68,16 +83,73 @@ const SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
   }
 `;
 
+const GET_USERS_QUERY = gql`
+  query USERSLIST {
+    getUsers {
+      userId
+      emailAddress
+      inactive
+    }
+  }
+`;
+const GET_FILES_QUERY = gql`
+  query getFILES($taskId: ID!) {
+    getWork(taskId: $taskId) {
+      task {
+        taskId
+      }
+      taskLogs {
+        taskFiles {
+          fileName
+          fileId
+        }
+      }
+    }
+  }
+`;
+
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
   const [userDetail, setUserDetail] = useState([]);
+  const [showLoader, setShowLoader] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const userResponse = useQuery(GET_USERS_QUERY);
+  const [getSubCategory, subCategoryResponse] =
+    useLazyQuery(SUB_CATEGORY_QUERY);
   console.log(id);
   let taskId = parseInt(id);
 
   const response = useQuery(VIEW_TASK_QUERY, {
     variables: { taskId: taskId },
   });
+  const fileListResponse = useQuery(GET_FILES_QUERY, {
+    variables: { taskId: taskId },
+  });
+
+  console.log("fileListResponse  ::", fileListResponse);
+
+  useEffect(() => {
+    if (response.loading) {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, [response]);
+
+  // response && response.loading ? setShowLoader(true) : setShowLoader(false);
+
   const viewTaskValues = response.data;
+  let catId = viewTaskValues.getTask.categoryId;
+
+  // to get selectedCategory Details
+
+  const selectedCategory = useQuery(GETCATEGORY_QUERY, {
+    variables: catId,
+  });
+  console.log("cat", selectedCategory);
+
+  // setStartDate(due_Date);
+  const formattedDate = (due_Date) => {};
   console.log(viewTaskValues);
   let categoryId =
     viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
@@ -102,317 +174,471 @@ function Managetask({ logoutClick, userDetails }) {
       subCategoryId: subCategoryId,
     },
   });
-
-  const apiService = new APIService();
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [subCategory, setSubCategory] = useState([]);
-  const [subSubCategory, setSubSubCategory] = useState([]);
   const [defCat, setDefCat] = useState([]);
-  const [defSubCat, setDefSubCat] = useState([]);
-  const [defSubSubCat, setDefSubSubCat] = useState([]);
 
   const handleCategoryChange = (e) => {
     console.log(e.target.value);
     setDefCat(e.target.value);
     let key = e.target.value;
-    apiService
-      .request("subCategory")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log(myJson);
-        setSubCategory(myJson[key]);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
   };
   const handleSubCategoryChange = (e) => {
     console.log(e.target.value);
     let key = e.target.value;
-    setDefSubCat(e.target.value);
-    apiService
-      .request("subSubCategory")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log(myJson);
-        setSubSubCategory(myJson[key]);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // setDefSubCat(e.target.value);
   };
   const handleSubSubCategoryChange = (e) => {
-    setDefSubSubCat(e.target.value);
+    // setDefSubSubCat(e.target.value);
   };
-  let catgry = "";
-  let subCategry = "";
+  let due_Date = new Date();
   useEffect(() => {
-    apiService
-      .request("1")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log("--1---", myJson);
-        setUserDetail(myJson);
-        console.log(userDetail);
-        catgry = myJson.category;
-        console.log(catgry);
-        subCategry = myJson.subCategory;
-        setDefCat(myJson.category);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    apiService
-      .request("category")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log(myJson);
-        setCategoryOptions(myJson);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    apiService
-      .request("subCategory")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log(myJson);
-        console.log(catgry);
-        let cat = myJson[catgry];
-        console.log(cat);
-        setSubCategory(cat);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    apiService
-      .request("subSubCategory")
-      .then((response) => {
-        return response.json();
-      })
-      .then(function (myJson) {
-        console.log(myJson);
-        console.log(catgry);
-        let cat = myJson[subCategry];
-        console.log(cat);
-        setSubSubCategory(cat);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
+    due_Date = viewTaskValues && viewTaskValues.getTask.dueDate.formatString;
+    console.log("dueDate before :", due_Date);
+    due_Date = new Date(due_Date && due_Date);
+    console.log("due Date :: ", due_Date);
+    setStartDate(due_Date);
+  }, [viewTaskValues]);
   const docs = [
     {
       uri: "https://i.picsum.photos/id/0/5616/3744.jpg?hmac=3GAAioiQziMGEtLbfrdbcoenXoWAW-zlyEAMkfEdBzQ",
     }, // Local File
   ];
-  const [startDate, setStartDate] = useState("");
+
+  const [statusList, setStatusList] = useState([
+    {
+      id: 1,
+      name: "ASSIGNED",
+    },
+    {
+      id: 2,
+      name: "In Progress",
+    },
+    {
+      id: 3,
+      name: "New",
+    },
+    {
+      id: 4,
+      name: "Re Assigned",
+    },
+    {
+      id: 5,
+      name: "Closed",
+    },
+    {
+      id: 6,
+      name: "Reopened",
+    },
+  ]);
+  const downloadFile = (fileName) => {
+    console.log(taskId);
+    console.log(fileName);
+  };
+  const [createTaskInput, setCreateTaskInput] = useState({
+    categoryId: 0,
+    subCategoryId: 0,
+    subSubCategoryId: 0,
+    currentAssignee: 0,
+    title: "",
+    description: "",
+    dueDate: "",
+    creationLocLatitude: "",
+    creationLocLongitude: "",
+    refTaskId: "",
+    notes: "",
+    fileIds: [],
+  });
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    console.log("taskId : ", taskId);
+    console.log(categoryId);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      title: viewTaskValues && viewTaskValues.getTask.title,
+    }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      description: viewTaskValues && viewTaskValues.getTask.description,
+    }));
+    console.log("createTask Input : ", createTaskInput);
+  };
+
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
       <br />
       <div className="main-container mb-4 container">
-        <h5 className="themeColor">
-          {" "}
-          View Task / Edit Task &nbsp;
-          {/* <span title="edit" className="assignbutton">
-            <AiFillEdit />
-          </span> */}
-        </h5>
+        {showLoader && (
+          <>
+            <div class="d-flex justify-content-center align-items-center loader">
+              <div class="spinner-border" role="status"></div>
+            </div>
+          </>
+        )}
+        {showLoader == false && (
+          <>
+            <form onSubmit={onSubmit}>
+              <div className="row">
+                <div className="col-xs-12 col-sm-5 col-md-5 ">
+                  <div className="mt-2">
+                    <label> Task ID </label>
+                    <input
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      value={viewTaskValues && viewTaskValues.getTask.taskId}
+                      disabled
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <label> Title </label>
+                    <input
+                      type="text"
+                      value={viewTaskValues && viewTaskValues.getTask.title}
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      disabled
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <label> Description</label>
+                    <input
+                      type="text"
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      value={
+                        viewTaskValues && viewTaskValues.getTask.description
+                      }
+                      disabled
+                    />
+                    {/* {viewTaskValues && viewTaskValues.getTask.description} */}
+                    {/* </textarea> */}
+                  </div>
+                  <div className="mt-2">
+                    <label> Category </label>
+                    <Select
+                      name="category"
+                      placeholder="Category"
+                      // className="mt-2 form-control"
+                      className=" box shadow-none border-0 border-bottom  createTaskMandatoryLabel w-100"
+                      options={
+                        getCategoryList.data &&
+                        getCategoryList.data.getCategories.map(
+                          ({ categoryId: value, name: label }) => ({
+                            label,
+                            value,
+                          })
+                        )
+                      }
+                      defaultValue={{
+                        label: "design specifications",
+                        value: 2,
+                      }}
+                      onChange={(selectedOption) => {
+                        getSubCategory({
+                          variables: {
+                            categoryId: setCreateTaskInput((prevState) => ({
+                              ...prevState,
+                              categoryId: selectedOption.value,
+                            })),
+                          },
+                        });
+                      }}
+                    ></Select>
+                    {/* <select className="mt-1 form-control">
+                      {getCategoryList.data &&
+                        getCategoryList.data.getCategories.map(
+                          (item, index) => {
+                            return (
+                              <option key={index} value={item.subCategoryId}>
+                                {item.name}
+                              </option>
+                            );
+                          }
+                        )}
+                    </select> */}
+                  </div>
+                  <div className="mt-2">
+                    <label> Sub Category </label>
+                    <select
+                      onChange={handleSubCategoryChange}
+                      className="mt-1 form-control"
+                    >
+                      {getSubCategoryList.data &&
+                        getSubCategoryList.data.getSubCategoriesByCategoryId.map(
+                          (item, index) => {
+                            return (
+                              <option key={index} value={item.value}>
+                                {item.name}
+                              </option>
+                            );
+                          }
+                        )}
+                    </select>
+                  </div>
+                  <div className="mt-2">
+                    <label> Sub Sub Category </label>
+                    <select
+                      onChange={handleSubSubCategoryChange}
+                      className="mt-1 form-control"
+                    >
+                      {getSubSubCategoryList.data &&
+                      getSubSubCategoryList.data ? (
+                        getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
+                          (item, index) => {
+                            return (
+                              <option key={index} value={item.subSubCategoryId}>
+                                {item.name}
+                              </option>
+                            );
+                          }
+                        )
+                      ) : (
+                        <option value={"No Data"}>No Data</option>
+                      )}
+                    </select>
+                  </div>
 
-        <div className="row">
-          <div className="col-xs-12 col-sm-5 col-md-5 ">
-            <div className="mt-2">
-              <label> Task ID </label>
-              <div>{viewTaskValues && viewTaskValues.getTask.taskId}</div>
-            </div>
-            <div className="mt-2">
-              <label> Category </label>
-              <select
-                // onChange={handleCategoryChange}
-                className="mt-1 form-control"
-              >
-                {getCategoryList.data &&
-                  getCategoryList.data.getCategories.map((item, index) => {
-                    return (
-                      <option key={index} value={item.subCategoryId}>
-                        {item.name}
-                      </option>
-                    );
-                  })}
-              </select>
-            </div>
-            <div className="mt-2">
-              <label> Sub Category </label>
-              <select
-                onChange={handleSubCategoryChange}
-                className="mt-1 form-control"
-              >
-                {getSubCategoryList.data &&
-                  getSubCategoryList.data.getSubCategoriesByCategoryId.map(
-                    (item, index) => {
-                      return (
-                        <option key={index} value={item.value}>
-                          {item.name}
-                        </option>
-                      );
-                    }
-                  )}
-              </select>
-            </div>
-            <div className="mt-2">
-              <label> Sub Sub Category </label>
-              <select
-                onChange={handleSubSubCategoryChange}
-                className="mt-1 form-control"
-              >
-                {getSubSubCategoryList.data && getSubSubCategoryList.data ? (
-                  getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
-                    (item, index) => {
-                      return (
-                        <option key={index} value={item.subSubCategoryId}>
-                          {item.name}
-                        </option>
-                      );
-                    }
-                  )
-                ) : (
-                  <option value={"No Data"}>No Data</option>
-                )}
-              </select>
-            </div>
-            <div className="mt-2">
-              <label> Status </label>
-              <div>{viewTaskValues && viewTaskValues.getTask.statusName}</div>
-            </div>
-            <div className="mt-2">
-              <label> Last Status TimeStamp </label>
+                  <div className="mt-2">
+                    <Select
+                      name="handler"
+                      placeholder="Handler"
+                      // className="mt-2 form-control"
+                      className=" box shadow-none border-0 border-bottom w-100 "
+                      defaultValue={
+                        viewTaskValues && viewTaskValues.getTask.currentAssignee
+                      }
+                      options={
+                        userResponse.data &&
+                        userResponse.data.getUsers.map(
+                          ({ userId: value, emailAddress: label }) => ({
+                            label,
+                            value,
+                          })
+                        )
+                      }
+                    ></Select>
+                  </div>
+                  <div className="mt-2">
+                    <Select
+                      name="watcher"
+                      className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      required={true}
+                      placeholder="watcher"
+                      options={
+                        userResponse.data &&
+                        userResponse.data.getUsers.map(
+                          ({ userId: value, emailAddress: label }) => ({
+                            label,
+                            value,
+                          })
+                        )
+                      }
+                      // onChange={(selectedOption) => {
+                      //   setInputCriteria({
+                      //     ...inputCriteria,
+                      //     brand_name: selectedOption,
+                      //   });
+                      // }}
+                      isMulti
+                    />
+                  </div>
 
-              <div>--</div>
-            </div>
-            <div className="mt-2">
-              <label> Last Updated By </label>
-              <div>{viewTaskValues && viewTaskValues.getTask.resolvedBy}</div>
-            </div>
-            <div className="mt-2">
-              <label>Created On </label>
-              <div>
-                {viewTaskValues &&
-                  viewTaskValues.getTask.createdDate.formatString}
-              </div>
-            </div>
-            <div className="mt-2">
-              <label> Documents </label>
-              <div className="border mt-1">
-                <DocViewer
-                  pluginRenderers={DocViewerRenderers}
-                  documents={docs}
-                />
-                {/* <ul> Doc1.pdf</ul>
-                <ul> note.wav</ul> */}
-              </div>
-            </div>
-            <div className="mt-2">
-              <label> Notes </label>
-              <textarea className="form-control mt-1 "> </textarea>
-            </div>
-            <div className="mt-2">
-              <label> Created By </label>
-              <div>
-                {viewTaskValues && viewTaskValues.getTask.createdByName}
-              </div>
-            </div>
-          </div>
-          <div className="col-md-1"></div>
-          <div className="col-xs-12 col-sm-5 col-md-5  ">
-            <div className="mt-2">
-              <label> Subject </label>
-              <input
-                type="text"
-                value={viewTaskValues && viewTaskValues.getTask.title}
-                className="form-control mt-1"
-              />
-            </div>
-            <div className="mt-2">
-              <label> Description</label>
-              <input
-                type="text"
-                className="form-control mt-1 "
-                value={viewTaskValues && viewTaskValues.getTask.description}
-              />
-              {/* {viewTaskValues && viewTaskValues.getTask.description} */}
-              {/* </textarea> */}
-            </div>
-            <div className="mt-2">
-              <label> Link to Previous </label>
-            </div>
-            <div className="mt-2">
-              <label> Assigned To </label>
-              <div>
-                {viewTaskValues && viewTaskValues.getTask.currentAssigneeName}
-              </div>
-            </div>
-            <div className="mt-2">
-              <label className="mt-1 w-100">
-                {" "}
-                ETA
-                <div className="d-flex form-control cursor-pointer mt-1">
-                  <ReactDatePicker
-                    type="text"
-                    name="fromDate"
-                    className="datePickerField col-lg-12 border-0 "
-                    dateFormat="dd-MM-yyyy"
-                    selected={startDate}
-                    placeholderText="start date"
-                    onChange={(date) => setStartDate(date)}
-                  />
-                  <BsCalendar className="mt-1" />
+                  <div className="mt-2">
+                    <div>
+                      {fileListResponse.data &&
+                        fileListResponse.data.getWork.taskLogs.length > 0 && (
+                          <div className="">
+                            <label className="marginRight1 mt-1">
+                              {" "}
+                              Attached Files &nbsp;{" "}
+                            </label>
+                            <div className="uploaded-file">
+                              <Table responsive className="border-0 mt-1">
+                                <tbody>
+                                  {fileListResponse.data.getWork.taskLogs[0].taskFiles.map(
+                                    (file, index) => {
+                                      console.log("file : ", taskId);
+                                      return (
+                                        <tr key={index}>
+                                          <td className="border-0 fontSize11">
+                                            {" "}
+                                            {file.fileName}{" "}
+                                          </td>
+                                          <td className="border-0 fontSize11">
+                                            {" "}
+                                            <a
+                                              title="download"
+                                              href={
+                                                `http://3.110.3.72/events/download/fileId/` +
+                                                file.fileId +
+                                                `/taskId/` +
+                                                taskId +
+                                                `/`
+                                              }
+                                              target="_blank"
+                                            >
+                                              <span
+                                                className="cursor-pointer"
+                                                onClick={() => {
+                                                  downloadFile(file.fileName);
+                                                }}
+                                              >
+                                                <ImDownload3 />
+                                              </span>
+                                            </a>
+                                          </td>
+                                        </tr>
+                                      );
+                                    }
+                                  )}
+                                </tbody>
+                              </Table>
+                            </div>
+                            <div className="upload-btn d-flex justify-content-end">
+                              <button
+                                type="button"
+                                // onClick={fileUploadAll}
+                                className="form-control btn-clr w-25 "
+                              >
+                                Upload
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
                 </div>
-              </label>
-            </div>
-            <div className="mt-2">
-              {/* <Link to="/taskhistory"> */}
-              <p>
-                <u>
-                  <em>View History ?</em>
-                </u>
-              </p>
-            </div>
+                <div className="col-md-1"></div>
+                <div className="col-xs-12 col-sm-5 col-md-5  ">
+                  {/* <div className="mt-2">
+                  <label> Link to Previous </label>
+                </div> */}
+                  <div className="mt-2">
+                    <label> Status </label>
+                    <div>
+                      <select
+                        onChange={handleSubSubCategoryChange}
+                        className="mt-1 form-control"
+                      >
+                        {viewTaskValues && viewTaskValues.getTask.statusName ? (
+                          statusList.map((item, index) => {
+                            return (
+                              <option key={index} value={item.id}>
+                                {item.name}
+                              </option>
+                            );
+                          })
+                        ) : (
+                          <option value={"No Data"}>No Data</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <label> Resolution </label>
+                    <input
+                      type="text"
+                      value={
+                        viewTaskValues && viewTaskValues.getTask.resolution
+                      }
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    />
+                  </div>
 
-            <div className="mt-2">
-              <div className="mt-1">
-                <MapComponent />
+                  <div className="mt-2">
+                    <label className="mt-1 w-100">
+                      {" "}
+                      Due Date
+                      {console.log(
+                        viewTaskValues &&
+                          viewTaskValues.getTask.dueDate.formatString
+                      )}
+                      <div className="d-flex form-control cursor-pointer mt-1">
+                        <ReactDatePicker
+                          type="text"
+                          name="fromDate"
+                          className="datePickerField col-lg-12 border-0 "
+                          dateFormat="dd-MM-yyyy"
+                          selected={startDate}
+                          placeholderText="start date"
+                          onChange={(date) => setStartDate(date)}
+                        />
+                        <BsCalendar className="mt-1" />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="mt-2">
+                    <label> Created By </label>
+                    <input
+                      type="text"
+                      value={
+                        viewTaskValues && viewTaskValues.getTask.createdByName
+                      }
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      disabled
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <label>Created On </label>
+                    <input
+                      type="text"
+                      value={
+                        viewTaskValues &&
+                        viewTaskValues.getTask.createdDate.formatString
+                      }
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      disabled
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <label> Last Status TimeStamp </label>
+
+                    <div>--</div>
+                  </div>
+                  <div className="mt-2">
+                    <label> Last Updated By </label>
+                    <div>--</div>
+                  </div>
+                  <div className="mt-2">
+                    {/* <Link to="/taskhistory"> */}
+                    {/* <p className="d-flex justify-content-end">
+                    <label className="cursor-pointer">
+                      <a className=" underline">
+                        click here to view history ...
+                      </a>{" "}
+                    </label>
+                  </p> */}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <br />
-        <div className="row">
-          <div className="col"></div>
-          <div className="col-xs-4 col-lg-4 col-md-6 col-lg-5 mt-2 mb-5 ">
-            <button className="form-control  btn-clr submitButton">
-              {" "}
-              Submit{" "}
-            </button>
-          </div>
-          <div className="col"></div>
-        </div>
+              <div className="row">
+                <div className="col-md-2 col-lg-2"></div>
+                <div className="col-md-8 col-lg-8 ">
+                  <label> Notes </label>
+                  <textarea className="form-control mt-1 "> </textarea>
+                </div>
+                <div className="col-md-2 col-lg-2"></div>
+              </div>
+              <br />
 
+              <div className="row">
+                <div className="col"></div>
+                <div className="col mt-2 mb-5 ">
+                  <button
+                    type="submit"
+                    className="form-control  btn-clr submitButton"
+                  >
+                    {" "}
+                    Submit{" "}
+                  </button>
+                </div>
+                <div className="col"></div>
+              </div>
+            </form>
+          </>
+        )}
         <br />
         <br />
       </div>
       <br />
-
       <Footer />
     </div>
   );

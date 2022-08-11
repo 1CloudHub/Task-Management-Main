@@ -38,11 +38,11 @@ function Filters({
           onClick={handleSorter}
         >
           {defSortType ? (
-            <span className="btn btn-clr border-0 rounded-0" title="desc sort">
+            <span className="btn btn-clr border-0 rounded-0" title="sort">
               <FaSortAmountDown />
             </span>
           ) : (
-            <span className="btn btn-clr border-0 rounded-0" title="asc sort">
+            <span className="btn btn-clr border-0 rounded-0" title="sort">
               <FaSortAmountUp />
             </span>
           )}
@@ -98,7 +98,7 @@ function Filters({
                       onChange={handleCategoryChange}
                       className=" form-control"
                     >
-                      <option value="0">All</option>
+                      <option value={0}>All</option>
                       {categoryResponse.data &&
                         categoryResponse.data.getCategories.map(
                           (item, index) => {

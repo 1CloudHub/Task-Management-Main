@@ -277,9 +277,9 @@ function Newtask({ logoutClick, userDetails }) {
   };
 
   const onSubmit = (data) => {
-    console.log("submit clicked");
+    console.log("submit clicked", data);
 
-    console.log(createTaskInput.categoryId);
+    console.log(createTaskInput.dueDate);
     // return;
     // uploadedFile.forEach((element, index, array) => {
     //   getFileIds(file);
@@ -298,7 +298,7 @@ function Newtask({ logoutClick, userDetails }) {
             currentAssignee: parseInt(createTaskInput.currentAssignee),
             // creationLocLatitude: createTaskInput.creationLocLatitude,
             // creationLocLongitude: createTaskInput.creationLocLongitude,
-            dueDate: "2022-08-20",
+            dueDate: createTaskInput.dueDate,
           },
         },
       });
@@ -326,10 +326,29 @@ function Newtask({ logoutClick, userDetails }) {
     setDeleteSelectedFile(array.splice(index, 1));
     setUploadedFile(array);
   };
+  const formatDate = (date) => {
+    var d = new Date(date),
+      month = "" + (d.getMonth() + 1),
+      day = "" + d.getDate(),
+      year = d.getFullYear();
 
-  //FunctionEnd
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
 
-  // for getting map location
+    return [day, month, year].join("-");
+  };
+
+  const onChangeDate = (date) => {
+    console.log(date);
+    let formattedDate = formatDate(date);
+    console.log(formattedDate);
+
+    setStartDate(date);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      dueDate: formattedDate,
+    }));
+  };
 
   return (
     <div className="main ">
@@ -593,16 +612,17 @@ function Newtask({ logoutClick, userDetails }) {
                       dateFormat="dd-MM-yyyy"
                       selected={startDate}
                       // onChange={(date) => setStartDate(date)}
-                      onChange={(date) => {
-                        setStartDate(date);
-                        setCreateTaskInput((prevState) => ({
-                          ...prevState,
-                          dueDate: date,
-                        }));
-                      }}
+                      // {...register("dueDate", { required: true })}
+                      onChange={onChangeDate}
                     />
                     <BsCalendar className="mt-1 border-bottom" />
                   </div>
+                  {errors.dueDate && (
+                    <p className="text-danger span-error">
+                      {" "}
+                      Due Date is required
+                    </p>
+                  )}
                 </div>
                 <div className="mt-3 d-flex justify-content-center">
                   {/* <MapComponent

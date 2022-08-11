@@ -7,9 +7,9 @@ function Cards({ item }) {
     <div>
       {" "}
       <Card className="p-2 card-bg backgroundCard rounded-0 m-1 cursor-pointer">
-        <div className="d-flex">
+        <div className="row">
           {" "}
-          <div className="w-75 ml-2">
+          <div className="w-90">
             <div>
               {" "}
               <b> {item.title}</b>
@@ -23,18 +23,27 @@ function Cards({ item }) {
               <b> Due : </b> {item.dueDate && item.dueDate.formatString}{" "}
             </div>{" "}
           </div>
-          <div className="floatRight mt-4">
+          <div className="w-10 d-flex align-items-center">
             <div>
-              {item.statusName}{" "}
-              {item.statusName == "Due Past" ? (
-                <FaCircle className="MyTaskStatusCircleDuePast" />
-              ) : item.statusName == "InProgress" ? (
-                <FaCircle className="MyTaskStatusCircleInprogress" />
-              ) : item.statusName == "New" ? (
-                <FaCircle className="MyTaskStatusCircleNew" />
+              {item.statusName == "ASSIGNED" || "NEW" ? (
+                <span className="assigned-status">
+                  <FaCircle />
+                </span>
+              ) : item.statusName == "In Progress" ? (
+                <span className="inprogress-status">
+                  <FaCircle />
+                </span>
+              ) : item.statusName == "Closed" ? (
+                <span className="resolved-status">
+                  <FaCircle />
+                </span>
+              ) : item.statusName == "Due Date" ? (
+                <span className="resolved-status">
+                  <FaCircle />
+                </span>
               ) : (
                 ""
-              )}{" "}
+              )}
             </div>
           </div>{" "}
         </div>{" "}

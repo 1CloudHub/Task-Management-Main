@@ -1,7 +1,7 @@
 import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { Button } from "bootstrap";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Nav,
@@ -25,9 +25,15 @@ import { FaPaperclip } from "react-icons/fa";
 
 function NavBar({ logoutClick, handleChangeFileData }) {
   const navigateTo = useNavigate();
+  const [url, setURL] = useState("");
   const logout = () => {
     navigateTo("/");
   };
+
+  useEffect(() => {
+    let urlString = console.log(window.location.pathname);
+    setURL(urlString);
+  }, []);
 
   let userDetails = localStorage.getItem("userDetail");
   userDetails = JSON.parse(userDetails);
@@ -74,10 +80,12 @@ function NavBar({ logoutClick, handleChangeFileData }) {
             ) : window.location.pathname == "/AddTask" ? (
               <h6 className="ml-10 mt-2">
                 {" "}
-                :: <strong>CREATE TASK</strong>{" "}
+                <strong>:: CREATE TASK</strong>{" "}
               </h6>
             ) : (
-              ""
+              <h6 className="ml-10 mt-2">
+                <strong>:: MANAGE TASK</strong>{" "}
+              </h6>
             )}
           </Navbar.Brand>
           <Navbar.Text className="show-mobile-icons">
@@ -105,8 +113,16 @@ function NavBar({ logoutClick, handleChangeFileData }) {
                 />
               </span>
             ) : (
-              // onClick={fileAttachId}
-              ""
+              <span className="mobile-icons cursor-pointer">
+                <FaPaperclip onClick={fileUpload} />
+                <input
+                  type="file"
+                  id="fileAttach"
+                  className="d-none"
+                  multiple
+                  onChange={handleChangeFileData}
+                />
+              </span>
             )}
             <span className="mobile-icons">
               <FiSearch className="" />

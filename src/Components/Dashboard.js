@@ -73,6 +73,7 @@ function Dashboard({ logoutClick, userDetails }) {
   const [handlerResponse, setHandlerResponse] = useState();
   const [watcherResponse, setWatcherResponse] = useState();
   const [creatorResponse, setCreatorResponse] = useState();
+  const [showLoader, setShowLoader] = useState(false);
   const today = new Date();
 
   const currentWeek = () => {
@@ -309,6 +310,15 @@ function Dashboard({ logoutClick, userDetails }) {
     return;
   };
 
+  // useEffect(() => {
+  //   console.log(handlerResponse.loading);
+  //   if (handlerResponse && handlerResponse.loading) {
+  //     setShowLoader(true);
+  //   } else {
+  //     setShowLoader(false);
+  //   }
+  // }, [handlerResponse, creatorResponse]);
+
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
@@ -341,6 +351,13 @@ function Dashboard({ logoutClick, userDetails }) {
               />
               {handlerResponse && (
                 <>
+                  {showLoader && (
+                    <>
+                      <div class="d-flex justify-content-center align-items-center loader">
+                        <div class="spinner-border" role="status"></div>
+                      </div>
+                    </>
+                  )}
                   {handlerResponse.data.getFilteredTasks.length == 0 ? (
                     <>
                       <br />
