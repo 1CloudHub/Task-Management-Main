@@ -496,6 +496,7 @@ function Newtask({ logoutClick, userDetails }) {
                     type="file"
                     id="file"
                     name="file"
+                    style={{ fontSize: "11px" }}
                     onChange={handleChangeFileData}
                     multiple
                   />

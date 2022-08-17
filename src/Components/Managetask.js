@@ -1,4 +1,10 @@
-import { gql, useLazyQuery, useQuery } from "@apollo/client";
+import {
+  ApolloClient,
+  gql,
+  InMemoryCache,
+  useLazyQuery,
+  useQuery,
+} from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
@@ -36,6 +42,7 @@ const VIEW_TASK_QUERY = gql`
       }
       status
       description
+      creationLocLatitude
     }
   }
 `;
@@ -66,13 +73,25 @@ const SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
   }
 `;
 const SUB_CATEGORY_QUERY = gql`
-  {
-    getSubCategoriesByCategoryId(categoryId: 2) {
+  query GETSUBCATEGORY($categoryId: Int!) {
+    getSubCategoriesByCategoryId(categoryId: $categoryId) {
       subCategoryId
       name
     }
   }
 `;
+
+const client = new ApolloClient({
+  uri: "http://3.110.3.72/graphql",
+  cache: new InMemoryCache(),
+  fetchOptions: {
+    mode: "no-cors",
+  },
+  headers: {
+    "Authentication-Token": "saldfal00965-klal998-jknj",
+    userId: "1",
+  },
+});
 
 const SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
   query GETSUBSUBCATEGORYLIST($subCategoryId: Int!) {
@@ -114,8 +133,21 @@ function Managetask({ logoutClick, userDetails }) {
   const [showLoader, setShowLoader] = useState(false);
   const [startDate, setStartDate] = useState("");
   const userResponse = useQuery(GET_USERS_QUERY);
-  const [getSubCategory, subCategoryResponse] =
-    useLazyQuery(SUB_CATEGORY_QUERY);
+  const [createTaskInput, setCreateTaskInput] = useState({
+    categoryId: 0,
+    subCategoryId: 0,
+    subSubCategoryId: 0,
+    currentAssignee: 0,
+    title: "",
+    description: "",
+    dueDate: "",
+    creationLocLatitude: "",
+    creationLocLongitude: "",
+    refTaskId: "",
+    notes: "",
+    fileIds: [],
+  });
+
   console.log(id);
   let taskId = parseInt(id);
 
@@ -126,61 +158,106 @@ function Managetask({ logoutClick, userDetails }) {
     variables: { taskId: taskId },
   });
 
-  console.log("fileListResponse  ::", fileListResponse);
+  // console.log("fileListResponse  ::", fileListResponse);
+  let selectedCatObj = {};
 
+  const viewTaskValues = response.data;
+  console.log(viewTaskValues);
+  let catId = viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
+  // catId = 3;
+
+  // to get selectedCategory Details
+
+  const selectedCategory = useQuery(GETCATEGORY_QUERY, {
+    variables: {
+      categoryId: catId,
+    },
+  });
+  // to get category List -all
+  const getCategoryList = useQuery(CATEGORY_LIST_QUERY);
+  // to get categoryList
+
+  // to get subcategory list
+  const getSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
+    variables: {
+      categoryId: catId,
+    },
+  });
+  console.log("getSubCategoryList --", getSubCategoryList);
+  const [subCategoryResponse, setSubCategoryResponse] = useState([]);
+
+  let subCategoryId =
+    viewTaskValues && parseInt(viewTaskValues.getTask.subCategoryId);
+  let currentAssignee =
+    viewTaskValues && parseInt(viewTaskValues.getTask.currentAssignee);
+  let title = viewTaskValues && viewTaskValues.getTask.title;
+  let description = viewTaskValues && viewTaskValues.getTask.description;
+  let latitude = viewTaskValues && viewTaskValues.getTask.creationLocLatitude;
+
+  const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
+    variables: {
+      subCategoryId: 2,
+    },
+  });
+  const getSubCategory = (categoryId) => {
+    client
+      .query({
+        query: SUB_CATEGORY_QUERY,
+        variables: {
+          categoryId: categoryId,
+        },
+      })
+      .then((response) => {
+        console.log("sub category response ", response);
+        setSubCategoryResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const getSubSubCategory = (subCategoryId) => {
+    client
+      .query({
+        query: SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY,
+        variables: {
+          categoryId: subCategoryId,
+        },
+      })
+      .then((response) => {
+        console.log("sub category response ", response);
+        setSubCategoryResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
   useEffect(() => {
     if (response.loading) {
       setShowLoader(true);
     } else {
       setShowLoader(false);
     }
-  }, [response]);
 
-  // response && response.loading ? setShowLoader(true) : setShowLoader(false);
+    getSubCategory(catId);
+    getSubSubCategory(subCategoryId);
 
-  const viewTaskValues = response.data;
-  let catId = viewTaskValues.getTask.categoryId;
-
-  // to get selectedCategory Details
-
-  const selectedCategory = useQuery(GETCATEGORY_QUERY, {
-    variables: catId,
-  });
-  console.log("cat", selectedCategory);
-
-  // setStartDate(due_Date);
-  const formattedDate = (due_Date) => {};
-  console.log(viewTaskValues);
-  let categoryId =
-    viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
-  console.log(categoryId);
-  // to get categoryList
-  const getCategoryList = useQuery(CATEGORY_LIST_QUERY);
-  console.log("getCategoryList", getCategoryList);
-
-  // to get subcategory list
-  const getSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
-    variables: {
-      categoryId: categoryId,
-    },
-  });
-  console.log("getSubCategoryList --", getSubCategoryList);
-
-  let subCategoryId =
-    viewTaskValues && parseInt(viewTaskValues.getTask.subCategoryId);
-
-  const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
-    variables: {
+    console.log(selectedCatObj);
+    setCreateTaskInput((prevState) => ({ ...prevState, categoryId: catId }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
       subCategoryId: subCategoryId,
-    },
-  });
-  const [defCat, setDefCat] = useState([]);
+    }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      currentAssignee: currentAssignee,
+    }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      title: title,
+    }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      description: description,
+    }));
+  }, [response, selectedCategory, getCategoryList]);
 
-  const handleCategoryChange = (e) => {
-    console.log(e.target.value);
-    setDefCat(e.target.value);
-    let key = e.target.value;
-  };
   const handleSubCategoryChange = (e) => {
     console.log(e.target.value);
     let key = e.target.value;
@@ -233,25 +310,11 @@ function Managetask({ logoutClick, userDetails }) {
     console.log(taskId);
     console.log(fileName);
   };
-  const [createTaskInput, setCreateTaskInput] = useState({
-    categoryId: 0,
-    subCategoryId: 0,
-    subSubCategoryId: 0,
-    currentAssignee: 0,
-    title: "",
-    description: "",
-    dueDate: "",
-    creationLocLatitude: "",
-    creationLocLongitude: "",
-    refTaskId: "",
-    notes: "",
-    fileIds: [],
-  });
 
   const onSubmit = (e) => {
     e.preventDefault();
     console.log("taskId : ", taskId);
-    console.log(categoryId);
+    console.log(catId);
     setCreateTaskInput((prevState) => ({
       ...prevState,
       title: viewTaskValues && viewTaskValues.getTask.title,
@@ -261,6 +324,15 @@ function Managetask({ logoutClick, userDetails }) {
       description: viewTaskValues && viewTaskValues.getTask.description,
     }));
     console.log("createTask Input : ", createTaskInput);
+  };
+
+  const handleCategory = (e) => {
+    console.log(e.target.value);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      categoryId: e.target.value,
+    }));
+    getSubCategory(e.target.value);
   };
 
   return (
@@ -283,7 +355,7 @@ function Managetask({ logoutClick, userDetails }) {
                   <div className="mt-2">
                     <label> Task ID </label>
                     <input
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className="border-0  w-100 createTaskMandatoryLabel isDisabled-field"
                       value={viewTaskValues && viewTaskValues.getTask.taskId}
                       disabled
                     />
@@ -293,7 +365,7 @@ function Managetask({ logoutClick, userDetails }) {
                     <input
                       type="text"
                       value={viewTaskValues && viewTaskValues.getTask.title}
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       disabled
                     />
                   </div>
@@ -301,7 +373,7 @@ function Managetask({ logoutClick, userDetails }) {
                     <label> Description</label>
                     <input
                       type="text"
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       value={
                         viewTaskValues && viewTaskValues.getTask.description
                       }
@@ -311,109 +383,104 @@ function Managetask({ logoutClick, userDetails }) {
                     {/* </textarea> */}
                   </div>
                   <div className="mt-2">
-                    <label> Category </label>
-                    <Select
-                      name="category"
-                      placeholder="Category"
-                      // className="mt-2 form-control"
-                      className=" box shadow-none border-0 border-bottom  createTaskMandatoryLabel w-100"
-                      options={
-                        getCategoryList.data &&
-                        getCategoryList.data.getCategories.map(
-                          ({ categoryId: value, name: label }) => ({
-                            label,
-                            value,
-                          })
-                        )
-                      }
-                      defaultValue={{
-                        label: "design specifications",
-                        value: 2,
-                      }}
-                      onChange={(selectedOption) => {
-                        getSubCategory({
-                          variables: {
-                            categoryId: setCreateTaskInput((prevState) => ({
-                              ...prevState,
-                              categoryId: selectedOption.value,
-                            })),
-                          },
-                        });
-                      }}
-                    ></Select>
-                    {/* <select className="mt-1 form-control">
-                      {getCategoryList.data &&
-                        getCategoryList.data.getCategories.map(
-                          (item, index) => {
-                            return (
-                              <option key={index} value={item.subCategoryId}>
-                                {item.name}
-                              </option>
-                            );
-                          }
+                    <label className=" w-100">
+                      {" "}
+                      Category
+                      <select
+                        name="category"
+                        value={createTaskInput.categoryId}
+                        // value={
+                        className=" form-control  createTaskMandatoryLabel"
+                        onChange={handleCategory}
+                      >
+                        <option value={0}>All</option>
+                        {getCategoryList.data &&
+                          getCategoryList.data.getCategories.map(
+                            (item, index) => {
+                              return (
+                                <option key={index} value={item.categoryId}>
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <label className=" w-100">
+                      {" "}
+                      Sub Category
+                      <select
+                        value={0}
+                        onChange={handleSubCategoryChange}
+                        className="form-control createTaskMandatoryLabel"
+                      >
+                        {subCategoryResponse.data &&
+                          subCategoryResponse.data.getSubCategoriesByCategoryId.map(
+                            (item, index) => {
+                              return (
+                                <option key={index} value={item.value}>
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <label className="w-100">
+                      {" "}
+                      Sub Sub Category
+                      <select
+                        onChange={handleSubSubCategoryChange}
+                        className=" form-control createTaskMandatoryLabel"
+                      >
+                        {getSubSubCategoryList.data &&
+                        getSubSubCategoryList.data ? (
+                          getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
+                            (item, index) => {
+                              return (
+                                <option
+                                  key={index}
+                                  value={item.subSubCategoryId}
+                                >
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )
+                        ) : (
+                          <option value={"No Data"}>No Data</option>
                         )}
-                    </select> */}
+                      </select>
+                    </label>
                   </div>
                   <div className="mt-2">
-                    <label> Sub Category </label>
-                    <select
-                      onChange={handleSubCategoryChange}
-                      className="mt-1 form-control"
-                    >
-                      {getSubCategoryList.data &&
-                        getSubCategoryList.data.getSubCategoriesByCategoryId.map(
-                          (item, index) => {
+                    <label className="w-100">
+                      {" "}
+                      Handler
+                      <select
+                        onChange={(e) => {
+                          setCreateTaskInput((prevState) => ({
+                            ...prevState,
+                            currentAssignee: e.target.value,
+                          }));
+                        }}
+                        value={createTaskInput.currentAssignee}
+                        className=" form-control createTaskMandatoryLabel"
+                      >
+                        {userResponse.data &&
+                          userResponse.data.getUsers.map((item, index) => {
                             return (
-                              <option key={index} value={item.value}>
-                                {item.name}
+                              <option key={index} value={item.userId}>
+                                {item.emailAddress}
                               </option>
                             );
-                          }
-                        )}
-                    </select>
-                  </div>
-                  <div className="mt-2">
-                    <label> Sub Sub Category </label>
-                    <select
-                      onChange={handleSubSubCategoryChange}
-                      className="mt-1 form-control"
-                    >
-                      {getSubSubCategoryList.data &&
-                      getSubSubCategoryList.data ? (
-                        getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
-                          (item, index) => {
-                            return (
-                              <option key={index} value={item.subSubCategoryId}>
-                                {item.name}
-                              </option>
-                            );
-                          }
-                        )
-                      ) : (
-                        <option value={"No Data"}>No Data</option>
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="mt-2">
-                    <Select
-                      name="handler"
-                      placeholder="Handler"
-                      // className="mt-2 form-control"
-                      className=" box shadow-none border-0 border-bottom w-100 "
-                      defaultValue={
-                        viewTaskValues && viewTaskValues.getTask.currentAssignee
-                      }
-                      options={
-                        userResponse.data &&
-                        userResponse.data.getUsers.map(
-                          ({ userId: value, emailAddress: label }) => ({
-                            label,
-                            value,
-                          })
-                        )
-                      }
-                    ></Select>
+                          })}
+                      </select>
+                    </label>
                   </div>
                   <div className="mt-2">
                     <Select
@@ -439,7 +506,6 @@ function Managetask({ logoutClick, userDetails }) {
                       isMulti
                     />
                   </div>
-
                   <div className="mt-2">
                     <div>
                       {fileListResponse.data &&
@@ -572,7 +638,7 @@ function Managetask({ logoutClick, userDetails }) {
                       value={
                         viewTaskValues && viewTaskValues.getTask.createdByName
                       }
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       disabled
                     />
                   </div>
@@ -584,18 +650,28 @@ function Managetask({ logoutClick, userDetails }) {
                         viewTaskValues &&
                         viewTaskValues.getTask.createdDate.formatString
                       }
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       disabled
                     />
                   </div>
                   <div className="mt-2">
                     <label> Last Status TimeStamp </label>
 
-                    <div>--</div>
+                    <input
+                      type="text"
+                      value={"--"}
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
+                      disabled
+                    />
                   </div>
                   <div className="mt-2">
                     <label> Last Updated By </label>
-                    <div>--</div>
+                    <input
+                      type="text"
+                      value={"--"}
+                      className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
+                      disabled
+                    />
                   </div>
                   <div className="mt-2">
                     {/* <Link to="/taskhistory"> */}

@@ -71,7 +71,7 @@ label {
   background-color: var(--bg-clr-white);
   border-color: var(--theme-color) !important;
   outline: 0;
-  box-shadow: var(--shadow-color) !important;
+  box-shadow: none !important;
 }
 
 .form-check-input:checked {
@@ -616,4 +616,9 @@ Select:focus {
 }
 .w-10 {
   width: 10%;
+}
+
+.isDisabled-field {
+  background: #efefef;
+  border-bottom: none !important;
 }

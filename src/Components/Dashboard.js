@@ -31,6 +31,26 @@ const FILTERED_TASK_QUERY = gql`
   }
 `;
 
+const GET_TASK_FOR_WATCHERS_QUERY = gql`
+  query GETALL($userId: ID!) {
+    getTasksWatchedBy(userId: $userId) {
+      title
+      description
+      status
+      taskId
+      categoryId
+      createdBy
+      createdByName
+      statusName
+      currentAssignee
+      currentAssigneeName
+      dueDate {
+        formatString(format: "dd-MMM-yy")
+      }
+    }
+  }
+`;
+
 const CATEGORY_QUERY = gql`
   {
     getCategories {
@@ -73,7 +93,10 @@ function Dashboard({ logoutClick, userDetails }) {
   const [handlerResponse, setHandlerResponse] = useState();
   const [watcherResponse, setWatcherResponse] = useState();
   const [creatorResponse, setCreatorResponse] = useState();
-  const [showLoader, setShowLoader] = useState(false);
+  const [showLoaderHandler, setShowLoaderHandler] = useState(true);
+  const [showLoaderWatcher, setShowLoaderWatcher] = useState(true);
+  const [showLoaderCreator, setShowLoaderCreator] = useState(true);
+
   const today = new Date();
 
   const currentWeek = () => {
@@ -162,6 +185,7 @@ function Dashboard({ logoutClick, userDetails }) {
       })
       .then((response) => {
         console.log("handler response : ", response);
+        setShowLoaderHandler(false);
         setHandlerResponse(response);
       })
       .catch((err) => console.error(err));
@@ -227,7 +251,24 @@ function Dashboard({ logoutClick, userDetails }) {
       })
       .then((response) => {
         console.log("creator respose ", response);
+        setShowLoaderCreator(false);
         setCreatorResponse(response);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const clientCallForWatcherResponse = () => {
+    client
+      .query({
+        query: GET_TASK_FOR_WATCHERS_QUERY,
+        variables: {
+          userId: 18,
+        },
+      })
+      .then((response) => {
+        console.log("watcher respose ", response);
+        setShowLoaderWatcher(false);
+        setWatcherResponse(response);
       })
       .catch((err) => console.error(err));
   };
@@ -243,10 +284,12 @@ function Dashboard({ logoutClick, userDetails }) {
     let endWeek = formatDate(new Date());
     clientCallforHandlerResponse("DESC", startWeek, endWeek, categoryId);
     clientCallforCreatorResponse("DESC", startWeek, endWeek, categoryId);
+    clientCallForWatcherResponse();
   }, []);
 
   const [defDescSortHandler, setDefSortHandler] = useState(true);
   const [defDescSortCreator, setDefSortCreator] = useState(true);
+  const [defDescSortWatcher, setDefSortWatcher] = useState(true);
 
   const handleSorterforHandler = () => {
     console.log("sort for handler   ");
@@ -280,13 +323,28 @@ function Dashboard({ logoutClick, userDetails }) {
     }
   };
 
+  const handleSorterforWatcher = () => {
+    console.log("sort for watcher");
+    console.log("categoryId : ", categoryId);
+
+    let stDate = formatDate(startDate);
+    let edDate = formatDate(endDate);
+    console.log(stDate);
+    console.log(edDate);
+    setDefSortWatcher(!defDescSortWatcher);
+    if (defDescSortWatcher) {
+      clientCallForWatcherResponse("ASC", stDate, edDate, categoryId);
+    } else {
+      clientCallForWatcherResponse("DESC", stDate, edDate, categoryId);
+    }
+  };
+
   const handleStart = (date) => {
     setStartDate(date);
   };
   const handleEnd = (date) => {
     setEndDate(date);
   };
-
   const submitFilter = (e) => {
     console.log("submit", e.target.name);
     let tabType = e.target.name;
@@ -309,15 +367,6 @@ function Dashboard({ logoutClick, userDetails }) {
     e.preventDefault();
     return;
   };
-
-  // useEffect(() => {
-  //   console.log(handlerResponse.loading);
-  //   if (handlerResponse && handlerResponse.loading) {
-  //     setShowLoader(true);
-  //   } else {
-  //     setShowLoader(false);
-  //   }
-  // }, [handlerResponse, creatorResponse]);
 
   return (
     <div>
@@ -349,15 +398,15 @@ function Dashboard({ logoutClick, userDetails }) {
                 tabType={"handler"}
                 defSortType={defDescSortHandler}
               />
+              {showLoaderHandler && (
+                <>
+                  <div class="d-flex justify-content-center align-items-center loader">
+                    <div class="spinner-border" role="status"></div>
+                  </div>
+                </>
+              )}
               {handlerResponse && (
                 <>
-                  {showLoader && (
-                    <>
-                      <div class="d-flex justify-content-center align-items-center loader">
-                        <div class="spinner-border" role="status"></div>
-                      </div>
-                    </>
-                  )}
                   {handlerResponse.data.getFilteredTasks.length == 0 ? (
                     <>
                       <br />
@@ -382,28 +431,53 @@ function Dashboard({ logoutClick, userDetails }) {
             </Tab>
             {/* Watcher */}
             <Tab eventKey="watch" title="Watcher">
-              {/* {response && (
+              {watcherResponse && (
                 <>
-                   <Filters
-                    handleSorter={handleSorterforHandler}
+                  <Filters
+                    handleSorter={handleSorterforWatcher}
                     handleEyeIconClick={handleEyeIconClick}
                     categoryResponse={categoryResponse}
                     submitFilter={submitFilter}
-                    startDate={nextweek}
+                    startDate={startDate ? startDate : nextweek}
                     endDate={endDate}
                     handleCategoryChange={handleCategoryChange}
                     handleStart={handleStart}
                     handleEnd={handleEnd}
+                    tabType={"watcher"}
+                    defSortType={defDescSortWatcher}
                   />
-                  <CardList response={response} />
-                  <div className="show-mobile-icons">
-                    <div>
-                      <CardList response={response} />
-                    </div>
-                  </div>
-                  <Graphs response={response} />
+                  {showLoaderWatcher && (
+                    <>
+                      <div class="d-flex justify-content-center align-items-center loader">
+                        <div class="spinner-border" role="status"></div>
+                      </div>
+                    </>
+                  )}
+                  {watcherResponse && (
+                    <>
+                      {watcherResponse.data.getTasksWatchedBy.length == 0 ? (
+                        <>
+                          <br />
+                          <div className="card d-flex justify-content-center align-items-center text-danger border-0">
+                            <div className="card-body border-0">No data</div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {" "}
+                          <CardList response={watcherResponse} />
+                          <div className="show-mobile-icons">
+                            <div>
+                              <CardList response={watcherResponse} />
+                            </div>
+                          </div>
+                          <Graphs response={watcherResponse} />
+                        </>
+                      )}
+                    </>
+                  )}
                 </>
-              )} */}
+              )}
             </Tab>
             {/* Creator */}
             <Tab eventKey="create" title="Creator">
@@ -420,6 +494,13 @@ function Dashboard({ logoutClick, userDetails }) {
                 tabType={"creator"}
                 defSortType={defDescSortCreator}
               />
+              {showLoaderCreator && (
+                <>
+                  <div class="d-flex justify-content-center align-items-center loader">
+                    <div class="spinner-border" role="status"></div>
+                  </div>
+                </>
+              )}
               {creatorResponse && (
                 <>
                   {creatorResponse.data.getFilteredTasks.length == 0 ? (
