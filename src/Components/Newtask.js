@@ -187,26 +187,26 @@ function Newtask({ logoutClick, userDetails }) {
 
     console.log(array);
   };
-  const formData = new FormData();
 
   var fileIdArray = [];
 
   const [SubmitTask, submitResponse] = useMutation(CREATE_TASK_MUTATE);
   const fileUploadAll = () => {
     uploadedFile.forEach((element, index, array) => {
-      formData.append("file", file[0]);
+      const formData = new FormData();
+      formData.append("file", element);
       axios
-        .post(fileUploadURL, formData, Config)
+        .post(fileUploadURL, formData, {
+          headers: Config(userId, authToken),
+        })
         .then((response) => {
-          console.log("file API response : ", response.data.fileId);
+          console.log("file API response : ", response);
           let resp = response.data.fileId;
           fileIdArray.push(resp);
-          console.log("fileId Array list ::", fileIdArray);
           setCreateTaskInput((prevState) => ({
             ...prevState,
             fileIds: fileIdArray,
           }));
-          console.log(createTaskInput.fileIds);
         })
         .catch((error) => {
           console.log("file API error:", error);

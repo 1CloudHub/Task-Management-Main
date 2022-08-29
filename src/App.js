@@ -39,7 +39,7 @@ function App() {
   }, []);
 
   const loginSuccess = (e) => {
-    alert("login success  ");
+    // alert("login success  ");
     console.log("loginSuccess : ", e);
     var cred = e.credential;
     setUserDetails(e);
@@ -95,7 +95,7 @@ function App() {
   };
 
   const onLogoutSuccess = () => {
-    alert("logout called");
+    // alert("logout called");
     setUserDetails({});
     setIsLoginSuccess(false);
     localStorage.clear();

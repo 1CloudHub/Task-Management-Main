@@ -20,6 +20,10 @@ function Cards({ item }) {
             </div>
             <div>
               {" "}
+              <b> Created By : </b> {item.createdByName}
+            </div>{" "}
+            <div>
+              {" "}
               <b> Due : </b> {item.dueDate && item.dueDate.formatString}{" "}
             </div>{" "}
           </div>

@@ -23,6 +23,7 @@ export const Client = new ApolloClient({
   fetchOptions: {
     mode: "no-cors",
   },
+
   headers: Config,
 });
 

@@ -118,8 +118,12 @@ const GET_FILES_QUERY = gql`
       taskLogs {
         taskFiles {
           fileName
-          fileId
+          uuid
         }
+      }
+      watchers {
+        watcherId
+        watcherName
       }
     }
   }
@@ -172,6 +176,7 @@ function Managetask({ logoutClick, userDetails }) {
   const [showLoader, setShowLoader] = useState(false);
   const [startDate, setStartDate] = useState("");
   const userResponse = useQuery(GET_USERS_QUERY);
+
   const [createTaskInput, setCreateTaskInput] = useState({
     categoryId: 0,
     subCategoryId: 0,
@@ -193,11 +198,39 @@ function Managetask({ logoutClick, userDetails }) {
   const response = useQuery(VIEW_TASK_QUERY, {
     variables: { taskId: taskId },
   });
-  const fileListResponse = useQuery(GET_FILES_QUERY, {
+  const getWorkResponse = useQuery(GET_FILES_QUERY, {
+    variables: { taskId: taskId },
+  });
+  let existingFileData = getWorkResponse.data && getWorkResponse.data;
+  console.log("getWorkResponse  ::", getWorkResponse);
+
+  const watcherResponse = useQuery(GET_FILES_QUERY, {
     variables: { taskId: taskId },
   });
 
-  // console.log("fileListResponse  ::", fileListResponse);
+  let selectedWatchers = getWorkResponse.data && getWorkResponse.data;
+  console.log("getWorkResponse  ::", getWorkResponse);
+
+  const [watcherDataArray, setWatcherDataArray] = useState([]);
+
+  const fetchWatcherData = () => {
+    setWatcherDataArray([]);
+    console.log(selectedWatchers && selectedWatchers.getWork.watchers);
+
+    selectedWatchers &&
+      selectedWatchers.getWork.watchers.forEach((item, index) => {
+        console.log(item);
+        let obj = {};
+        obj["label"] = item.watcherName;
+        obj["value"] = item.watcherId;
+
+        watcherDataArray.push(obj);
+      });
+
+    console.log(watcherDataArray);
+  };
+
+  console.log("wactherName : ", watcherDataArray);
   let selectedCatObj = {};
 
   const viewTaskValues = response.data;
@@ -236,11 +269,11 @@ function Managetask({ logoutClick, userDetails }) {
   let statusName = viewTaskValues && viewTaskValues.getTask.statusName;
   // statusName = "IN_PROGRESS";
 
-  const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
-    variables: {
-      subCategoryId: 2,
-    },
-  });
+  // const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
+  //   variables: {
+  //     subCategoryId: 2,
+  //   },
+  // });
   const getSubCategory = (categoryId) => {
     client
       .query({
@@ -277,7 +310,7 @@ function Managetask({ logoutClick, userDetails }) {
     } else {
       setShowLoader(false);
     }
-
+    fetchWatcherData();
     getSubCategory(catId);
     getSubSubCategory(subCategoryId);
 
@@ -304,7 +337,7 @@ function Managetask({ logoutClick, userDetails }) {
     } else {
       setIsShowResolution(false);
     }
-  }, [response, selectedCategory, getCategoryList]);
+  }, [response, selectedCategory, getCategoryList, watcherResponse]);
 
   const handleSubCategoryChange = (e) => {
     console.log(e.target.value);
@@ -582,7 +615,7 @@ function Managetask({ logoutClick, userDetails }) {
                         onChange={handleSubSubCategoryChange}
                         className=" form-control createTaskMandatoryLabel"
                       >
-                        {getSubSubCategoryList.data &&
+                        {/* {getSubSubCategoryList.data &&
                         getSubSubCategoryList.data ? (
                           getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
                             (item, index) => {
@@ -596,9 +629,9 @@ function Managetask({ logoutClick, userDetails }) {
                               );
                             }
                           )
-                        ) : (
-                          <option value={"No Data"}>No Data</option>
-                        )}
+                        ) : ( */}
+                        <option value={"No Data"}>No Data</option>
+                        {/* )} */}
                       </select>
                     </label>
                   </div>
@@ -630,7 +663,7 @@ function Managetask({ logoutClick, userDetails }) {
                   <div className="mt-2">
                     <Select
                       name="watcher"
-                      className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      className=" box shadow-none border-0 border-bottom w-100 watcher"
                       required={true}
                       placeholder="watcher"
                       options={
@@ -642,6 +675,7 @@ function Managetask({ logoutClick, userDetails }) {
                           })
                         )
                       }
+                      defaultValue={watcherDataArray}
                       // onChange={(selectedOption) => {
                       //   setInputCriteria({
                       //     ...inputCriteria,
@@ -652,13 +686,48 @@ function Managetask({ logoutClick, userDetails }) {
                     />
                   </div>
                   <div className="mt-3">
+                    {existingFileData && (
+                      <>
+                        <label className="marginRight1 mt-2">
+                          {" "}
+                          Attached Files: &nbsp;{" "}
+                        </label>
+                        <Table className="border-0">
+                          <tbody>
+                            {existingFileData &&
+                              existingFileData.getWork.taskLogs[0].taskFiles.map(
+                                (item, index) => {
+                                  return (
+                                    <tr key={index}>
+                                      <td className="fontSize11">
+                                        {" "}
+                                        {item.fileName}{" "}
+                                      </td>
+
+                                      <td className="fontSize11">
+                                        {" "}
+                                        <FaEye />{" "}
+                                      </td>
+
+                                      <td className="fontSize11">
+                                        {" "}
+                                        <FaTrashAlt
+                                          onClick={(e) =>
+                                            deleteSelectedRow(index, e)
+                                          }
+                                        />{" "}
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                              )}
+                          </tbody>
+                        </Table>
+                      </>
+                    )}
                     <div>
                       {uploadedFile && uploadedFile.length > 0 && (
                         <div className="">
-                          <label className="marginRight1 mt-2">
-                            {" "}
-                            Attached Files: &nbsp;{" "}
-                          </label>
                           <div className="uploaded-file">
                             <Table responsive className="border-0 mt-2">
                               <tbody>

@@ -67,6 +67,7 @@ function Dashboard({ logoutClick, userDetails }) {
       statusId,
       "currentAssignee"
     );
+    // alert("query for handler");
 
     client
       .query({
@@ -84,7 +85,7 @@ function Dashboard({ logoutClick, userDetails }) {
             ),
             sorts: [
               {
-                key: "dueDate",
+                key: "createdDate",
                 direction: sortType,
               },
             ],
@@ -93,6 +94,8 @@ function Dashboard({ logoutClick, userDetails }) {
       })
       .then((response) => {
         console.log("handler response : ", response);
+        // alert("query for handler response");
+
         setShowLoaderHandler(false);
         setHandlerResponse(response);
       })
@@ -197,10 +200,11 @@ function Dashboard({ logoutClick, userDetails }) {
     statusId
   ) => {
     getInputFilters(weekStart, endWeek, categoryId, statusId, "createdBy");
-
+    // alert("client call for creator");
     client
       .query({
         query: FILTERED_TASK_QUERY,
+
         variables: {
           request: {
             page: 0,
@@ -214,15 +218,17 @@ function Dashboard({ logoutClick, userDetails }) {
             ),
             sorts: [
               {
-                key: "dueDate",
+                key: "createdDate",
                 direction: sortType,
               },
             ],
           },
         },
+        fetchPolicy: "network-only",
       })
       .then((response) => {
         console.log("creator respose ", response);
+        // alert("creator resposnse");
         setShowLoaderCreator(false);
         setCreatorResponse(response);
       })
@@ -248,6 +254,7 @@ function Dashboard({ logoutClick, userDetails }) {
   useEffect(() => {
     let startWeek = currentWeek();
     let endWeek = formatDate(new Date());
+    // alert("useEffect being called");
     clientCallforHandlerResponse(
       "DESC",
       startWeek,
