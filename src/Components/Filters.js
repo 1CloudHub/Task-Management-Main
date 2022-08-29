@@ -4,6 +4,7 @@ import { FaFilter, FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
 import { Button } from "react-bootstrap";
+import { Status } from "../Services/Status";
 
 function Filters({
   handleEyeIconClick,
@@ -17,8 +18,10 @@ function Filters({
   handleEnd,
   tabType,
   defSortType,
+  handleStatusChange,
 }) {
   const [open, setOpen] = useState(false);
+  const [statusList, setStatusList] = useState(Status);
   return (
     <div>
       <div className="d-flex justify-content-end">
@@ -117,20 +120,17 @@ function Filters({
                   <label className="w-100 mt-2">
                     <span className="filter-span-header">Status</span>{" "}
                     <select
-                      onChange={handleCategoryChange}
+                      onChange={handleStatusChange}
                       className=" form-control"
                     >
                       <option value={0}>All</option>
-                      {categoryResponse.data &&
-                        categoryResponse.data.getCategories.map(
-                          (item, index) => {
-                            return (
-                              <option key={index} value={item.categoryId}>
-                                {item.name}
-                              </option>
-                            );
-                          }
-                        )}
+                      {statusList.map((item, index) => {
+                        return (
+                          <option key={index} value={item.id}>
+                            {item.name}
+                          </option>
+                        );
+                      })}
                     </select>
                   </label>
                 </div>

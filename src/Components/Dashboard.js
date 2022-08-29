@@ -26,6 +26,8 @@ function Dashboard({ logoutClick, userDetails }) {
   const today = new Date();
   const [endDate, setEndDate] = useState(new Date());
   const [categoryId, setCategoryId] = useState(0);
+  const [statusId, setStatusId] = useState(0);
+
   const [showViewDocPopup, setShowViewDocPopup] = useState(false);
   const [handlerResponse, setHandlerResponse] = useState();
   const [watcherResponse, setWatcherResponse] = useState();
@@ -55,43 +57,16 @@ function Dashboard({ logoutClick, userDetails }) {
     sortType = "DESC",
     weekStart,
     endWeek,
-    categoryId
+    categoryId,
+    statusId
   ) => {
-    let inputFilters = [];
-    if (categoryId == 0) {
-      inputFilters = [
-        {
-          filterKey: "createdDate",
-          operator: "BETWEEN",
-          values: [weekStart, endWeek],
-        },
-
-        {
-          filterKey: "currentAssignee",
-          operator: "EQUAL",
-          values: [userId],
-        },
-      ];
-    } else {
-      inputFilters = [
-        {
-          filterKey: "createdDate",
-          operator: "BETWEEN",
-          values: [weekStart, endWeek],
-        },
-        {
-          filterKey: "categoryId",
-          operator: "EQUAL",
-          values: [categoryId],
-        },
-
-        {
-          filterKey: "currentAssignee",
-          operator: "EQUAL",
-          values: [userId],
-        },
-      ];
-    }
+    getInputFilters(
+      weekStart,
+      endWeek,
+      categoryId,
+      statusId,
+      "currentAssignee"
+    );
 
     client
       .query({
@@ -100,10 +75,16 @@ function Dashboard({ logoutClick, userDetails }) {
           request: {
             page: 0,
             size: 10,
-            filters: inputFilters,
+            filters: getInputFilters(
+              weekStart,
+              endWeek,
+              categoryId,
+              statusId,
+              "currentAssignee"
+            ),
             sorts: [
               {
-                key: "status",
+                key: "dueDate",
                 direction: sortType,
               },
             ],
@@ -118,14 +99,16 @@ function Dashboard({ logoutClick, userDetails }) {
       .catch((err) => console.error(err));
   };
 
-  const clientCallforCreatorResponse = (
-    sortType = "DESC",
+  const getInputFilters = (
     weekStart,
     endWeek,
-    categoryId
+    categoryId,
+    statusId,
+
+    type
   ) => {
     let inputFilters = [];
-    if (categoryId == 0) {
+    if (categoryId == 0 && statusId == 0) {
       inputFilters = [
         {
           filterKey: "createdDate",
@@ -134,9 +117,48 @@ function Dashboard({ logoutClick, userDetails }) {
         },
 
         {
-          filterKey: "createdBy",
+          filterKey: type,
           operator: "EQUAL",
           values: [userId],
+        },
+      ];
+    } else if (categoryId != 0 && statusId == 0) {
+      inputFilters = [
+        {
+          filterKey: "createdDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+
+        {
+          filterKey: type,
+          operator: "EQUAL",
+          values: [userId],
+        },
+        {
+          filterKey: "categoryId",
+          operator: "EQUAL",
+          values: [categoryId],
+        },
+      ];
+    } else if (categoryId == 0 && statusId != 0) {
+      inputFilters = [
+        {
+          filterKey: "createdDate",
+          operator: "BETWEEN",
+          values: [weekStart, endWeek],
+        },
+
+        {
+          filterKey: type,
+          operator: "EQUAL",
+          values: [userId],
+        },
+
+        {
+          filterKey: "status",
+          operator: "EQUAL",
+          values: [statusId],
         },
       ];
     } else {
@@ -146,19 +168,36 @@ function Dashboard({ logoutClick, userDetails }) {
           operator: "BETWEEN",
           values: [weekStart, endWeek],
         },
+
+        {
+          filterKey: type,
+          operator: "EQUAL",
+          values: [userId],
+        },
         {
           filterKey: "categoryId",
           operator: "EQUAL",
           values: [categoryId],
         },
-
         {
-          filterKey: "createdBy",
+          filterKey: "status",
           operator: "EQUAL",
-          values: [userId],
+          values: [statusId],
         },
       ];
     }
+    return inputFilters;
+  };
+
+  const clientCallforCreatorResponse = (
+    sortType = "DESC",
+    weekStart,
+    endWeek,
+    categoryId,
+    statusId
+  ) => {
+    getInputFilters(weekStart, endWeek, categoryId, statusId, "createdBy");
+
     client
       .query({
         query: FILTERED_TASK_QUERY,
@@ -166,10 +205,16 @@ function Dashboard({ logoutClick, userDetails }) {
           request: {
             page: 0,
             size: 10,
-            filters: inputFilters,
+            filters: getInputFilters(
+              weekStart,
+              endWeek,
+              categoryId,
+              statusId,
+              "createdBy"
+            ),
             sorts: [
               {
-                key: "status",
+                key: "dueDate",
                 direction: sortType,
               },
             ],
@@ -203,12 +248,28 @@ function Dashboard({ logoutClick, userDetails }) {
   useEffect(() => {
     let startWeek = currentWeek();
     let endWeek = formatDate(new Date());
-    clientCallforHandlerResponse("DESC", startWeek, endWeek, categoryId);
-    clientCallforCreatorResponse("DESC", startWeek, endWeek, categoryId);
+    clientCallforHandlerResponse(
+      "DESC",
+      startWeek,
+      endWeek,
+      categoryId,
+      statusId
+    );
+    clientCallforCreatorResponse(
+      "DESC",
+      startWeek,
+      endWeek,
+      categoryId,
+      statusId
+    );
     clientCallForWatcherResponse();
   }, []);
   const categoryResponse = useQuery(CATEGORY_LIST_QUERY);
 
+  const handleStatusChange = (e) => {
+    console.log(e.target.value);
+    setStatusId(e.target.value);
+  };
   const currentWeek = () => {
     let d = new Date(new Date());
 
@@ -260,9 +321,15 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log(edDate);
     setDefSortCreator(!defDescSortCreator);
     if (defDescSortCreator) {
-      clientCallforCreatorResponse("ASC", stDate, edDate, categoryId);
+      clientCallforCreatorResponse("ASC", stDate, edDate, categoryId, statusId);
     } else {
-      clientCallforCreatorResponse("DESC", stDate, edDate, categoryId);
+      clientCallforCreatorResponse(
+        "DESC",
+        stDate,
+        edDate,
+        categoryId,
+        statusId
+      );
     }
   };
 
@@ -289,6 +356,11 @@ function Dashboard({ logoutClick, userDetails }) {
     setEndDate(date);
   };
   const submitFilter = (e) => {
+    e.preventDefault();
+    setShowLoaderCreator(true);
+    setShowLoaderHandler(true);
+    setShowLoaderWatcher(true);
+
     console.log("submit", e.target.name);
     let tabType = e.target.name;
 
@@ -296,15 +368,28 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log(startDate ? startDate : nextweek);
     console.log(endDate);
     console.log(categoryId);
+    console.log(statusId);
     let stDate = formatDate(startDate ? startDate : nextweek);
     let edDate = formatDate(endDate);
     console.log(stDate);
     console.log(edDate);
 
     if (tabType == "handler") {
-      clientCallforHandlerResponse("DESC", stDate, edDate, categoryId);
+      clientCallforHandlerResponse(
+        "DESC",
+        stDate,
+        edDate,
+        categoryId,
+        statusId
+      );
     } else {
-      clientCallforCreatorResponse("DESC", stDate, edDate, categoryId);
+      clientCallforCreatorResponse(
+        "DESC",
+        stDate,
+        edDate,
+        categoryId,
+        statusId
+      );
     }
 
     e.preventDefault();
@@ -340,6 +425,7 @@ function Dashboard({ logoutClick, userDetails }) {
                 handleEnd={handleEnd}
                 tabType={"handler"}
                 defSortType={defDescSortHandler}
+                handleStatusChange={handleStatusChange}
               />
               {showLoaderHandler && (
                 <>
@@ -383,6 +469,7 @@ function Dashboard({ logoutClick, userDetails }) {
                     handleEnd={handleEnd}
                     tabType={"watcher"}
                     defSortType={defDescSortWatcher}
+                    handleStatusChange={handleStatusChange}
                   />
                   {showLoaderWatcher && (
                     <>
