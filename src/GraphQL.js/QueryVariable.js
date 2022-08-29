@@ -1,0 +1,15 @@
+export const CreateTaskInput = {
+  categoryId: 0,
+  subCategoryId: 1,
+  subSubCategoryId: 1,
+  currentAssignee: 0,
+  title: "",
+  description: "",
+  dueDate: "",
+  creationLocLatitude: "",
+  creationLocLongitude: "",
+  refTaskId: "",
+  notes: "",
+  fileIds: [],
+  watcherIds: [],
+};

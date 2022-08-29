@@ -1,202 +1,189 @@
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap";
+import jwt_decode from "jwt-decode";
 import React, { useEffect, useState } from "react";
 import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
 import "react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css";
 import "react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css";
 import "react-datepicker/dist/react-datepicker.css";
-import GoogleLogin from "react-google-login";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import Dashboard from "./Components/Dashboard";
 import GoogleAuth from "./Components/GoogleAuth";
-import Login from "./Components/Login";
 import Managetask from "./Components/Managetask";
 import Newtask from "./Components/Newtask";
 import SearchList from "./Components/SearchList";
 import Taskhistory from "./Components/Taskhistory";
-import { useQuery, gql } from "@apollo/client";
-
-const GETUSERIDBBYEMAIL_QUERY = gql`
-  query USERIDBYEMAIL($emailAddress: String!) {
-    getUser(emailAddress: $emailAddress) {
-      userId
-      emailAddress
-    }
-  }
-`;
+import { Client, Config } from "./Services/HeadersConfig";
+import { GETUSERIDBBYEMAIL_QUERY } from "./Services/Query";
 
 function App() {
   const navigate = useNavigate();
   const [currentURL, setCurrentUrl] = useState("");
-
-  const [userDetails, setUserDetails] = useState({
-    username: "",
-    email: "",
-    userId: "",
-  });
+  const authenticateURL = process.env.REACT_APP_AUTHENTICATE_URL;
+  const [isloginSuccess, setIsLoginSuccess] = useState(false); //changed this to true for non google login page
+  const client = Client;
+  const [userDetails, setUserDetails] = useState({});
   useEffect(() => {
     setCurrentUrl(window.location.pathname);
+    const checkLogin = localStorage.getItem("userDetails");
+    console.log("checkLogin :: ", checkLogin);
+    if (checkLogin == null) {
+      setIsLoginSuccess(false);
+    } else {
+      setIsLoginSuccess(true);
+    }
   }, []);
 
   const loginSuccess = (e) => {
-    console.log(e);
-    setUserDetails({
-      username: e.profileObj.givenName,
-      email: e.profileObj.email,
-    });
-    console.log(userDetails);
-    localStorage.setItem("userDetail", JSON.stringify(userDetails));
-    // setIsLoginSuccess(true);
-    if (currentURL === "/") {
-      navigate("/MyTask");
-    } else {
-      navigate(currentURL);
-    }
-  };
-  const getUserIDbyEmail = useQuery(GETUSERIDBBYEMAIL_QUERY, {
-    variables: {
-      emailAddress: "raja.s@newgen.co",
-      // emailAddress:userName.email
-    },
-  });
-  console.log(getUserIDbyEmail);
-  let userId = getUserIDbyEmail.data && getUserIDbyEmail.data.getUser.userId;
+    alert("login success  ");
+    console.log("loginSuccess : ", e);
+    var cred = e.credential;
+    setUserDetails(e);
+    localStorage.setItem("userDetails", e);
+    var decoded = jwt_decode(cred);
+    console.log("decoded : ", decoded);
+    console.log("givenName : ", decoded.given_name);
+    console.log("email : ", decoded.email);
+    localStorage.setItem("userName", decoded.given_name);
+    localStorage.setItem("email", decoded.email);
+    localStorage.setItem("tokenId", e.credential);
+    setIsLoginSuccess(true);
+    // auth APIcall
 
-  localStorage.setItem("userId", userId);
+    // auth API call
+
+    // if (currentURL === "/") {
+    console.log("inside if of current URL : ");
+    axios
+      .post(authenticateURL, "", {
+        headers: {
+          "Accept-Encoding": "gzip,deflate,br",
+          Connection: "keep-alive",
+          "Authentication-token": e.credential,
+          "Access-Control-Allow-Origin": "*",
+        },
+      })
+      // .then((response) => {})
+      .then((response) => {
+        console.log("auth api response : ", response);
+        localStorage.setItem("jwt-token", response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    client
+      .query({
+        query: GETUSERIDBBYEMAIL_QUERY,
+        variables: {
+          emailAddress: localStorage.getItem("email"),
+        },
+      })
+      .then((response) => {
+        let userId = response.data && response.data.getUser.userId;
+        console.log("userId : ", userId);
+        localStorage.setItem("userId", userId);
+        navigate("/MyTask");
+      })
+      .catch((err) => console.error(err));
+    // } else {
+    //   navigate(currentURL);
+    // }
+  };
 
   const onLogoutSuccess = () => {
+    alert("logout called");
+    setUserDetails({});
+    setIsLoginSuccess(false);
+    localStorage.clear();
     navigate("/");
   };
   const onFailure = (e) => {
-    console.log("failure", e);
+    alert("login failed >>", e);
   };
 
-  const [isloginSuccess, setIsLoginSuccess] = useState(true); //changed this to true for non google login page
   const [showLogoutMessage, setShowLogoutMessage] = useState(false);
 
   return (
     <>
       {isloginSuccess ? (
-        <Routes>
-          <Route
-            path="/"
-            exact
-            element={<GoogleAuth loginSuccess={loginSuccess} />}
-          />
-          {/* <Route path="/" exact element={<Login />} /> */}
-          <Route
-            path="/MyTask"
-            exact
-            element={
-              <Dashboard
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-          <Route
-            path="/AddTask"
-            exact
-            element={
-              <Newtask
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-          <Route
-            path="/TaskHistory"
-            exact
-            element={
-              <Taskhistory
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-          <Route
-            path="/ManageTask/:id"
-            exact
-            element={
-              <Managetask
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-          <Route
-            path="/ManageTask/"
-            exact
-            element={
-              <Managetask
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-          <Route
-            path="/SearchList"
-            exact
-            element={
-              <SearchList
-                logoutClick={onLogoutSuccess}
-                userDetails={userDetails}
-              />
-            }
-          />
-        </Routes>
-      ) : (
         <>
-          <div className=" d-flex justify-content-center align-items-center googlebutton">
-            <div className="">
-              {showLogoutMessage ? (
-                <>
-                  <h5 className="mb-3 text-white">
-                    <strong>
-                      <span className="">
-                        <FontAwesomeIcon icon={faCheck} />
-                      </span>
-                      &nbsp; &nbsp;{userDetails.username}
-                    </strong>{" "}
-                    &nbsp;
-                    <em>logged Out Successfully , Login Again ?</em>
-                  </h5>
-                </>
-              ) : (
-                <>
-                  <h5 className="mb-3 text-center text-white">
-                    You are not Signed In , Login using Google to continue. . .
-                  </h5>
-                </>
-              )}
-
-              <div className="d-flex justify-content-center">
-                <GoogleLogin
-                  className=""
-                  clientId={
-                    "558355949896-4iqblbm56lvqs2fc997tqflv6bc29olp.apps.googleusercontent.com"
-                    //Jothi Gave
-                    // "637570065678-jlt07711go3864ss5p118r3d73aedt1p.apps.googleusercontent.com"
-                  }
-                  buttonText={"Click here to Login "}
-                  // uxMode="redirect" // redirectUri={"http://localhost:3000/Dashboard"}
-                  cookiePolicy={"single_host_origin"}
-                  onSuccess={loginSuccess}
-                  isSignedIn={true}
-                  onFailure={onFailure}
+          <Routes>
+            <Route
+              path="/"
+              exact
+              element={<GoogleAuth loginSuccess={loginSuccess} />}
+            />
+            <Route
+              path="/MyTask"
+              exact
+              element={
+                <Dashboard
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
                 />
-              </div>
-            </div>
-          </div>
+              }
+            />
+            <Route
+              path="/AddTask"
+              exact
+              element={
+                <Newtask
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
+                />
+              }
+            />
+            <Route
+              path="/TaskHistory"
+              exact
+              element={
+                <Taskhistory
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
+                />
+              }
+            />
+            <Route
+              path="/ManageTask/:id"
+              exact
+              element={
+                <Managetask
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
+                />
+              }
+            />
+            <Route
+              path="/ManageTask/"
+              exact
+              element={
+                <Managetask
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
+                />
+              }
+            />
+            <Route
+              path="/SearchList"
+              exact
+              element={
+                <SearchList
+                  logoutClick={onLogoutSuccess}
+                  userDetails={userDetails}
+                />
+              }
+            />
+          </Routes>
         </>
+      ) : (
+        <GoogleAuth loginSuccess={loginSuccess}></GoogleAuth>
       )}
 
-      <ToastContainer />
+      <ToastContainer position="top-right" />
     </>
   );
 }

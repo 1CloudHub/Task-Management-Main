@@ -21,6 +21,7 @@ function CardList({ response }) {
           {firstHalf.map((item, index) => {
             return (
               <>
+                {/* {index} */}
                 <div className="col-lg-6">
                   <Link to={`/ManageTask/` + item.taskId}>
                     <Cards item={item} />

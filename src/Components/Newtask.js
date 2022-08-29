@@ -1,81 +1,38 @@
-import { gql, useLazyQuery, useQuery, useMutation } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { Viewer } from "@react-pdf-viewer/core";
+import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
+import { Modal, Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { useForm } from "react-hook-form";
 import { BsCalendar } from "react-icons/bs";
-import { GrView } from "react-icons/gr";
-import { toast } from "react-toastify";
-import Footer from "./Footer";
-import MapComponent from "./MapComponent";
-import NavBar from "./Nav-bar";
-import { Table, Modal } from "react-bootstrap";
 import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
 import Select from "react-select";
-import { Viewer } from "@react-pdf-viewer/core";
-import axios from "axios";
+import { toast } from "react-toastify";
+import { CreateTaskInput } from "../GraphQL.js/QueryVariable";
+import { useNavigate } from "react-router-dom";
+import {
+  CATEGORY_LIST_QUERY,
+  CREATE_TASK_MUTATE,
+  GET_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
+  GET_SUB_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
+  GET_USERS_QUERY,
+} from "../Services/Query";
+import { ErrorAlert } from "./ErrorAlert";
+import Footer from "./Footer";
+import NavBar from "./Nav-bar";
+import Config from "../Services/HeadersConfig";
+import AuthService from "../Services/AuthService";
 
-const CATEGORY_QUERY = gql`
-  {
-    getCategories {
-      categoryId
-      name
-      createdBy
-    }
-  }
-`;
-
-const SUB_CATEGORY_QUERY = gql`
-  {
-    getSubCategoriesByCategoryId(categoryId: 2) {
-      subCategoryId
-      name
-    }
-  }
-`;
-
-const SUB_SUB_CATEGORY_QUERY = gql`
-  query GET_SUB_CATEGORY($categoryId: Int!) {
-    getSubCategoriesByCategoryId(categoryId: $categoryId) {
-      subCategoryId
-      name
-    }
-  }
-`;
-
-const CREATE_TASK = gql`
-  mutation ($input: CreateTaskInput!) {
-    createTask(input: $input) {
-      taskId
-      taskGroupId
-      title
-      description
-      referenceTaskId
-      createdBy
-      categoryId
-      subCategoryId
-
-      subSubCategoryId
-      dueDate {
-        formatString(format: "dd/MM/yyyy")
-      }
-    }
-  }
-`;
-
-const GET_USERS_QUERY = gql`
-  query USERSLIST {
-    getUsers {
-      userId
-      emailAddress
-      inactive
-    }
-  }
-`;
-
-const fileUploadURL = "http://3.110.3.72/events/upload";
-
+const fileUploadURL = process.env.REACT_APP_FILE_UPLOAD_URL;
+var userId = localStorage.getItem("userId");
+var authToken = localStorage.getItem("jwt-token");
 function Newtask({ logoutClick, userDetails }) {
   // Variable Declaration start
+
+  useEffect(() => {
+    Config(userId, authToken);
+  }, []);
   const formref = useRef();
   const {
     register,
@@ -105,21 +62,8 @@ function Newtask({ logoutClick, userDetails }) {
       date.getDate() + "-" + months[date.getMonth()] + "-" + date.getFullYear();
     return formatted_date;
   }
-  const [createTaskInput, setCreateTaskInput] = useState({
-    categoryId: 0,
-    subCategoryId: 0,
-    subSubCategoryId: 0,
-    currentAssignee: 0,
-    title: "",
-    description: "",
-    dueDate: "",
-    creationLocLatitude: "",
-    creationLocLongitude: "",
-    refTaskId: "",
-    notes: "",
-    fileIds: [],
-  });
-
+  const [createTaskInput, setCreateTaskInput] = useState(CreateTaskInput);
+  const navigate = useNavigate();
   const [uploadedFile, setUploadedFile] = useState([]);
   const [popUpImage, setPopUpImage] = useState();
   const [openPdfFile, setOpenPdfFile] = useState("");
@@ -127,7 +71,6 @@ function Newtask({ logoutClick, userDetails }) {
   const [selectedFileName, setSelectedFileName] = useState();
   const [chars_left_description, setCharsLeftDescription] = useState(200);
   const [chars_left_subject, setCharsLeftSubject] = useState(125);
-  const [data, setData] = useState();
   const [mapError, setMapError] = useState(false);
   const [mapErrorTxt, setMapErrorTxt] = useState(false);
   const [position, setPosition] = useState({
@@ -141,14 +84,22 @@ function Newtask({ logoutClick, userDetails }) {
   }, []);
 
   // GRAPHQL query request and response start
-  const [getSubCategory, subCategoryResponse] =
-    useLazyQuery(SUB_CATEGORY_QUERY);
-  const [getSubSubCategory, subsubCategoryResponse] = useLazyQuery(
-    SUB_SUB_CATEGORY_QUERY
+  const [getSubCategory, subCategoryResponse] = useLazyQuery(
+    GET_SUB_CATEGORY_BY_CATEGORY_ID_QUERY
   );
-  const categoryResponse = useQuery(CATEGORY_QUERY);
+  ErrorAlert(subCategoryResponse);
+
+  console.log(subCategoryResponse);
+  const [getSubSubCategory, subsubCategoryResponse] = useLazyQuery(
+    GET_SUB_SUB_CATEGORY_BY_CATEGORY_ID_QUERY
+  );
+
+  ErrorAlert(subsubCategoryResponse);
+  const categoryResponse = useQuery(CATEGORY_LIST_QUERY);
+  ErrorAlert(categoryResponse);
   // console.log(categoryResponse);
   const userResponse = useQuery(GET_USERS_QUERY);
+  ErrorAlert(userResponse);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
   // GRAPHQL query request and response end
 
@@ -214,10 +165,6 @@ function Newtask({ logoutClick, userDetails }) {
   };
   const handleCloseClick = () => setShowViewDocPopup(false);
 
-  const handleChangeData = ({ target: { name, value } }) => {
-    setData((prevState) => ({ ...prevState, [name]: value }));
-  };
-
   const handleChangeSubjectData = ({ target: { name, value } }) => {
     setCreateTaskInput((prevState) => ({ ...prevState, title: value }));
 
@@ -238,27 +185,18 @@ function Newtask({ logoutClick, userDetails }) {
     let array = [];
     array.push([event.target.files]);
 
-    console.log(createTaskInput.fileIds);
+    console.log(array);
   };
   const formData = new FormData();
-  const config = {
-    headers: {
-      "Accept-Encoding": "gzip,deflate,br",
-      Connection: "keep-alive",
-      userId: "18",
-      "Authentication-Token":
-        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOCIsImlhdCI6MTY1OTA5NDkxMiwiZXhwIjoxNjc3MDk0OTEyfQ.WwSyLTd1FQYJs5u4jEFl0U6ayn6g5Wlx-mOgNfthAog",
-      "Access-Control-Allow-Origin": "*",
-    },
-  };
+
   var fileIdArray = [];
 
-  const [SubmitTask] = useMutation(CREATE_TASK);
+  const [SubmitTask, submitResponse] = useMutation(CREATE_TASK_MUTATE);
   const fileUploadAll = () => {
     uploadedFile.forEach((element, index, array) => {
       formData.append("file", file[0]);
       axios
-        .post(fileUploadURL, formData, config)
+        .post(fileUploadURL, formData, Config)
         .then((response) => {
           console.log("file API response : ", response.data.fileId);
           let resp = response.data.fileId;
@@ -272,51 +210,109 @@ function Newtask({ logoutClick, userDetails }) {
         })
         .catch((error) => {
           console.log("file API error:", error);
+          toast.error(error);
         });
     });
+    toast.success("File Uploaded successfully");
   };
 
   const onSubmit = (data) => {
+    data.preventDefault();
     console.log("submit clicked", data);
-
-    console.log(createTaskInput.dueDate);
-    // return;
-    // uploadedFile.forEach((element, index, array) => {
-    //   getFileIds(file);
-    // });
-
-    if (uploadedFile.length === createTaskInput.fileIds.length) {
-      console.log("inisde if ....");
-      const res = SubmitTask({
-        variables: {
-          input: {
-            title: createTaskInput.title,
-            categoryId: parseInt(createTaskInput.categoryId),
-            subCategoryId: parseInt(createTaskInput.subCategoryId),
-            description: createTaskInput.description,
-            fileIds: createTaskInput.fileIds,
-            currentAssignee: parseInt(createTaskInput.currentAssignee),
-            // creationLocLatitude: createTaskInput.creationLocLatitude,
-            // creationLocLongitude: createTaskInput.creationLocLongitude,
-            dueDate: createTaskInput.dueDate,
-          },
-        },
-      });
-      console.log("res : ", res);
-    } else {
-      console.log("fill all required fields");
-    }
-
     console.log(createTaskInput);
-    console.log(uploadedFile.length);
 
-    // if (data != null) {
-    //   // console.log(data);
-    //   // formref.current.reset();
-    //   toast.success("Submitted Successfully");
-    // } else {
-    //   toast.error("Fill all required fields");
-    // }
+    console.log(Config(userId, authToken));
+    // return false;
+
+    if (
+      createTaskInput.title &&
+      createTaskInput.categoryId &&
+      createTaskInput.description &&
+      createTaskInput.currentAssignee &&
+      createTaskInput.dueDate
+    ) {
+      if (uploadedFile.length === createTaskInput.fileIds.length) {
+        console.log("inisde if ....");
+        var userId = localStorage.getItem("userId");
+        var authToken = localStorage.getItem("jwt-token");
+        fetch(process.env.REACT_APP_GRAPHQL_SERVICE_URL, {
+          method: "POST",
+          headers: Config(
+            localStorage.getItem("userId"),
+            localStorage.getItem("jwt-token")
+          ),
+          body: JSON.stringify({
+            query: `mutation ($input: CreateTaskInput!) {
+                    createTask(input: $input) {
+                      taskId
+                      taskGroupId
+                      title
+                      description
+                      referenceTaskId
+                      createdBy
+                      categoryId
+                      subCategoryId
+                      subSubCategoryId
+                      dueDate {
+                        formatString(format: "dd/MM/yyyy")
+                      }
+                    }
+                  }`,
+            variables: {
+              input: {
+                title: createTaskInput.title,
+                categoryId: parseInt(createTaskInput.categoryId),
+                subCategoryId: parseInt(createTaskInput.subCategoryId),
+                description: createTaskInput.description,
+                fileIds: createTaskInput.fileIds,
+                currentAssignee: parseInt(createTaskInput.currentAssignee),
+                lat: createTaskInput.creationLocLatitude,
+                lon: createTaskInput.creationLocLongitude,
+                dueDate: createTaskInput.dueDate,
+                watcherIds: createTaskInput.watcherIds,
+              },
+            },
+          }),
+        })
+          .then((response) => {
+            response.json();
+          })
+          .then((response) => {
+            console.log(response);
+            toast.success("Submitted Successfully");
+            navigate("/MyTask");
+          });
+        // const res = SubmitTask({
+        //   variables: {
+        //     input: {
+        //       title: createTaskInput.title,
+        //       categoryId: parseInt(createTaskInput.categoryId),
+        //       subCategoryId: parseInt(createTaskInput.subCategoryId),
+        //       description: createTaskInput.description,
+        //       fileIds: createTaskInput.fileIds,
+        //       currentAssignee: parseInt(createTaskInput.currentAssignee),
+        //       lat: createTaskInput.creationLocLatitude.toString(),
+        //       lon: createTaskInput.creationLocLongitude.toString(),
+        //       dueDate: createTaskInput.dueDate,
+        //       watcherIds: createTaskInput.watcherIds,
+        //     },
+        //   },
+        // });
+        console.log(submitResponse.error);
+
+        if (submitResponse.data) {
+          toast.success("submitted successfully");
+          navigate("/MyTask");
+        } else if (submitResponse.error) {
+          toast.error("Error !");
+        }
+      } else {
+        toast.error("please upload selected files");
+      }
+    } else {
+      toast.error("Fill all required fields");
+      return;
+    }
   };
 
   const deleteSelectedRow = (index) => {
@@ -335,7 +331,7 @@ function Newtask({ logoutClick, userDetails }) {
     if (month.length < 2) month = "0" + month;
     if (day.length < 2) day = "0" + day;
 
-    return [day, month, year].join("-");
+    return [year, month, day].join("-");
   };
 
   const onChangeDate = (date) => {
@@ -350,6 +346,15 @@ function Newtask({ logoutClick, userDetails }) {
     }));
   };
 
+  const handleWatcherChange = (e) => {
+    console.log(e);
+    let array = [];
+    e.forEach((item) => {
+      array.push(item.value);
+    });
+    setCreateTaskInput((prevState) => ({ ...prevState, watcherIds: array }));
+  };
+
   return (
     <div className="main ">
       <NavBar
@@ -361,7 +366,7 @@ function Newtask({ logoutClick, userDetails }) {
       <br />
       <div className="container main-container mb-5">
         <div>
-          <form ref={formref} onSubmit={handleSubmit(onSubmit)}>
+          <form ref={formref} onSubmit={onSubmit}>
             <div className="row mt-2">
               <div className="col-xs-12 col-sm-12 col-md-6  ">
                 <div className="">
@@ -371,7 +376,7 @@ function Newtask({ logoutClick, userDetails }) {
                     placeholder="Title"
                     className="box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
                     name="title"
-                    {...register("subjectLine", { required: true })}
+                    // {...register("subjectLine", { required: true })}
                     onChange={handleChangeSubjectData}
                   />
 
@@ -383,7 +388,7 @@ function Newtask({ logoutClick, userDetails }) {
                   <textarea
                     placeholder="Description"
                     name="description"
-                    {...register("description", { required: true })}
+                    // {...register("description", { required: true })}
                     onChange={handleChangeDescriptionData}
                     className="box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
                   />
@@ -394,8 +399,8 @@ function Newtask({ logoutClick, userDetails }) {
                     </p>
                   )}
                   <p className="charLeftClass">
-                    Document cannot exceed 200 characters
-                    {/* Document cannot exceed 200 characters :  {chars_left_description} */}
+                    {/* Document cannot exceed 200 characters */}
+                    characters left : {chars_left_description}
                   </p>
                 </div>
                 <div className=" mt-3">
@@ -413,15 +418,18 @@ function Newtask({ logoutClick, userDetails }) {
                         })
                       )
                     }
+                    // {...register("category", { required: true })}
                     onChange={(selectedOption) => {
+                      console.log(selectedOption.value);
                       getSubCategory({
                         variables: {
-                          categoryId: setCreateTaskInput((prevState) => ({
-                            ...prevState,
-                            categoryId: selectedOption.value,
-                          })),
+                          categoryId: selectedOption.value,
                         },
                       });
+                      setCreateTaskInput((prevState) => ({
+                        ...prevState,
+                        categoryId: selectedOption.value,
+                      }));
                     }}
                   ></Select>
                   {errors.category && (
@@ -436,16 +444,18 @@ function Newtask({ logoutClick, userDetails }) {
                   <select
                     name="subcategory"
                     className="mt-2 border-0 border-bottom w-100 fontSize11"
-                    onChange={(e) =>
+                    // {...register("subcategory", { required: true })}
+                    onChange={(e) => {
                       getSubSubCategory({
                         variables: {
-                          subCategoryId: setCreateTaskInput((prevState) => ({
-                            ...prevState,
-                            subCategoryId: e.target.value,
-                          })),
+                          subCategoryId: e.target.value,
                         },
-                      })
-                    }
+                      });
+                      setCreateTaskInput((prevState) => ({
+                        ...prevState,
+                        subCategoryId: e.target.value,
+                      }));
+                    }}
                     // className="mt-2 form-control"
                   >
                     <option value="">Sub Category </option>
@@ -460,6 +470,12 @@ function Newtask({ logoutClick, userDetails }) {
                         }
                       )}
                   </select>
+                  {/* {errors.subcategory && (
+                    <p className="text-danger span-error">
+                      {" "}
+                      Sub Category is required
+                    </p>
+                  )} */}
                 </div>
                 <div className="mt-3">
                   <select
@@ -561,6 +577,7 @@ function Newtask({ logoutClick, userDetails }) {
                     placeholder="Handler"
                     // className="mt-2 form-control"
                     className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    {...register("handler", { required: true })}
                     onChange={(selectedOption) => {
                       setCreateTaskInput((prevState) => ({
                         ...prevState,
@@ -577,13 +594,19 @@ function Newtask({ logoutClick, userDetails }) {
                       )
                     }
                   ></Select>
+                  {errors.handler && (
+                    <p className="text-danger span-error">
+                      {" "}
+                      Handler is required
+                    </p>
+                  )}
                 </div>
                 <div className="mt-3">
                   <Select
                     name="watcher"
-                    className=" box shadow-none border-0 border-bottom w-100 createTaskMandatoryLabel"
+                    className=" box shadow-none border-0 border-bottom w-100 fontSize11 watcher"
                     required={true}
-                    placeholder="watcher"
+                    placeholder="Watcher"
                     options={
                       userResponse.data &&
                       userResponse.data.getUsers.map(
@@ -593,12 +616,7 @@ function Newtask({ logoutClick, userDetails }) {
                         })
                       )
                     }
-                    // onChange={(selectedOption) => {
-                    //   setInputCriteria({
-                    //     ...inputCriteria,
-                    //     brand_name: selectedOption,
-                    //   });
-                    // }}
+                    onChange={handleWatcherChange}
                     isMulti
                   />
                 </div>
@@ -612,6 +630,7 @@ function Newtask({ logoutClick, userDetails }) {
                       className="datePickerField col-lg-12 border-0  w-100 border-bottom fontSize11"
                       dateFormat="dd-MM-yyyy"
                       selected={startDate}
+                      autoComplete="off"
                       // onChange={(date) => setStartDate(date)}
                       // {...register("dueDate", { required: true })}
                       onChange={onChangeDate}

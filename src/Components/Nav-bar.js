@@ -1,27 +1,14 @@
-import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { Button } from "bootstrap";
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  Nav,
-  Navbar,
-  NavDropdown,
-  Form,
-  Button,
-} from "react-bootstrap";
-import { GoogleLogout } from "react-google-login";
-import { AiFillEdit, AiFillFileAdd } from "react-icons/ai";
+import { Container, Form, Nav, Navbar, NavDropdown } from "react-bootstrap";
+import { AiFillFileAdd } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
-import { FaHistory } from "react-icons/fa";
-import { FiSearch } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import Logout from "./Logout";
 
+import { FaList, FaPaperclip } from "react-icons/fa";
 import { FiPieChart } from "react-icons/fi";
-import { FaChartPie, FaList } from "react-icons/fa";
-import { FaPaperclip } from "react-icons/fa";
 
 function NavBar({ logoutClick, handleChangeFileData }) {
   const navigateTo = useNavigate();
@@ -37,6 +24,9 @@ function NavBar({ logoutClick, handleChangeFileData }) {
 
   let userDetails = localStorage.getItem("userDetail");
   userDetails = JSON.parse(userDetails);
+  let userName = localStorage.getItem("userName");
+  let email = localStorage.getItem("email");
+
   // console.log(userDetails);
 
   const [isMobileView, setIsMobileView] = useState(false);
@@ -124,9 +114,9 @@ function NavBar({ logoutClick, handleChangeFileData }) {
                 />
               </span>
             )}
-            <span className="mobile-icons">
+            {/* <span className="mobile-icons">
               <FiSearch className="" />
-            </span>
+            </span> */}
             &nbsp;
           </Navbar.Text>
 
@@ -135,19 +125,19 @@ function NavBar({ logoutClick, handleChangeFileData }) {
           <Navbar.Collapse id="navbarScroll">
             <Form className="d-flex">
               <div className="input-group ">
-                <input
+                {/* <input
                   type="text"
                   list="search"
                   className="form-control search-bar"
                   placeholder="search "
                   aria-describedby="basic-addon2"
                   onKeyDown={handleSearch}
-                />
+                /> */}
                 <span
                   className="input-search-text cursor-pointer"
                   id="basic-addon2"
                 >
-                  <FiSearch className="mt-1 mb-1" />
+                  {/* <FiSearch className="mt-1 mb-1" /> */}
                 </span>
               </div>
               {/* <Button variant="outline-success">Search</Button> */}
@@ -172,12 +162,10 @@ function NavBar({ logoutClick, handleChangeFileData }) {
               })}
 
               <NavDropdown title={<CgProfile />} id="navbarScrollingDropdown">
-                <NavDropdown.Item key="1">
-                  {userDetails.username}
-                </NavDropdown.Item>
-                <NavDropdown.Item key="2">{userDetails.email}</NavDropdown.Item>
+                <NavDropdown.Item key="1">{userName}</NavDropdown.Item>
+                <NavDropdown.Item key="2">{email}</NavDropdown.Item>
                 <NavDropdown.Divider />
-                <NavDropdown.Item key="3">
+                <NavDropdown.Item key="3" logoutClick={logoutClick}>
                   <Logout logoutClick={logoutClick} />
                 </NavDropdown.Item>
               </NavDropdown>

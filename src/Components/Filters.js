@@ -54,7 +54,8 @@ function Filters({
             <h6>Filter</h6>
             <form name={tabType} onSubmit={submitFilter}>
               <div className="row">
-                <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <div className=" col-xs-12 col-sm-12 col-md-1 col-lg-1"></div>
+                <div className=" col-xs-12 col-sm-12 col-md-2 col-lg-2">
                   <label className=" w-100 mt-2">
                     {" "}
                     <span className="filter-span-header">Start Date</span>
@@ -72,7 +73,7 @@ function Filters({
                     </div>
                   </label>
                 </div>
-                <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <div className=" col-xs-12 col-sm-12 col-md-2 col-lg-2">
                   <label className="w-100 mt-2">
                     {" "}
                     <span className="filter-span-header">End Date</span>
@@ -91,9 +92,30 @@ function Filters({
                     </div>
                   </label>
                 </div>
-                <div className=" col-xs-12 col-sm-12 col-md-3 col-lg-3">
+                <div className=" col-xs-12 col-sm-12 col-md-2 col-lg-2">
                   <label className="w-100 mt-2">
                     <span className="filter-span-header">Category</span>{" "}
+                    <select
+                      onChange={handleCategoryChange}
+                      className=" form-control"
+                    >
+                      <option value={0}>All</option>
+                      {categoryResponse.data &&
+                        categoryResponse.data.getCategories.map(
+                          (item, index) => {
+                            return (
+                              <option key={index} value={item.categoryId}>
+                                {item.name}
+                              </option>
+                            );
+                          }
+                        )}
+                    </select>
+                  </label>
+                </div>
+                <div className=" col-xs-12 col-sm-12 col-md-2 col-lg-2">
+                  <label className="w-100 mt-2">
+                    <span className="filter-span-header">Status</span>{" "}
                     <select
                       onChange={handleCategoryChange}
                       className=" form-control"
@@ -124,6 +146,7 @@ function Filters({
                     </button>
                   </div>
                 </div>
+                <div className=" col-xs-12 col-sm-12 col-md-1 col-lg-1"></div>
               </div>
             </form>
           </div>

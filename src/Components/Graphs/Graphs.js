@@ -43,14 +43,14 @@ function Graphs({ response }) {
     return lastWeekDate;
   };
   const categoryResponse = useQuery(CATEGORY_QUERY);
-  const getChartResponse = useQuery(GET_DASHBOARD_QUERY, {
-    variables: {
-      request: {
-        page: 1,
-        size: 10,
-      },
-    },
-  });
+  // const getChartResponse = useQuery(GET_DASHBOARD_QUERY, {
+  //   variables: {
+  //     request: {
+  //       page: 1,
+  //       size: 10,
+  //     },
+  //   },
+  // });
 
   useEffect(() => {
     // console.log(currentWeek());

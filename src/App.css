@@ -332,8 +332,9 @@ ul.text-danger.dashboard-tabs.nav.nav-tabs {
 .charLeftClass {
   font-size: 9px;
   float: right;
-  background: red;
-  color: white;
+  /* background: red; */
+  color: red;
+
   margin-bottom: 0;
 }
 .show-mobile-icons {
@@ -543,6 +544,11 @@ nav {
   font-size: 11px !important;
 }
 
+.watcher div div.css-14el2xx-placeholder {
+  color: black !important;
+  font-size: 11px !important;
+}
+
 .span-error {
   font-size: 9px;
 }
@@ -621,4 +627,12 @@ Select:focus {
 .isDisabled-field {
   background: #efefef;
   border-bottom: none !important;
+}
+
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container {
+    width: 60vw;
+    top: 12%;
+    left: 20%;
+  }
 }

@@ -1,20 +1,17 @@
-import {
-  ApolloClient,
-  gql,
-  InMemoryCache,
-  useLazyQuery,
-  useQuery,
-} from "@apollo/client";
+import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client";
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
-import { ImDownload3 } from "react-icons/im";
+import { FaEye, FaTrashAlt } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import Select from "react-select";
+import { toast } from "react-toastify";
+import Config from "../Services/HeadersConfig";
+import { Status } from "../Services/Status";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
-
 const VIEW_TASK_QUERY = gql`
   query VIEWTASK($taskId: ID!) {
     getTask(taskId: $taskId) {
@@ -88,8 +85,9 @@ const client = new ApolloClient({
     mode: "no-cors",
   },
   headers: {
-    "Authentication-Token": "saldfal00965-klal998-jknj",
-    userId: "1",
+    "Authentication-Token":
+      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOCIsImlhdCI6MTY1OTA5NDkxMiwiZXhwIjoxNjc3MDk0OTEyfQ.WwSyLTd1FQYJs5u4jEFl0U6ayn6g5Wlx-mOgNfthAog",
+    userId: "18",
   },
 });
 
@@ -127,6 +125,47 @@ const GET_FILES_QUERY = gql`
   }
 `;
 
+const re = gql`
+  mutation REASSIGNTASK($input: TaskOperationInput!) {
+    reassignTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
+const RE_ASSIGNTASK_QUERY = gql`
+  mutation REASSIGNTASK($input: TaskOperationInput!) {
+    reassignTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
+
+const RESOLVE_TASK_QUERY = gql`
+  mutation RESOLVETASK($input: TaskOperationInput!) {
+    resolveTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
+const CLOSE_TASK_QUERY = gql`
+  mutation CLOSETASK($input: TaskOperationInput!) {
+    closeTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
+const REOPEN_TASK_QUERY = gql`
+  mutation REPOPENTASK($input: TaskOperationInput!) {
+    reopenTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
   const [userDetail, setUserDetail] = useState([]);
@@ -193,6 +232,9 @@ function Managetask({ logoutClick, userDetails }) {
   let title = viewTaskValues && viewTaskValues.getTask.title;
   let description = viewTaskValues && viewTaskValues.getTask.description;
   let latitude = viewTaskValues && viewTaskValues.getTask.creationLocLatitude;
+  let status = viewTaskValues && viewTaskValues.getTask.status;
+  let statusName = viewTaskValues && viewTaskValues.getTask.statusName;
+  // statusName = "IN_PROGRESS";
 
   const getSubSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
     variables: {
@@ -228,6 +270,7 @@ function Managetask({ logoutClick, userDetails }) {
       })
       .catch((err) => console.error(err));
   };
+
   useEffect(() => {
     if (response.loading) {
       setShowLoader(true);
@@ -256,6 +299,11 @@ function Managetask({ logoutClick, userDetails }) {
       ...prevState,
       description: description,
     }));
+    if (statusName == "RESOLVED") {
+      setIsShowResolution(true);
+    } else {
+      setIsShowResolution(false);
+    }
   }, [response, selectedCategory, getCategoryList]);
 
   const handleSubCategoryChange = (e) => {
@@ -280,32 +328,8 @@ function Managetask({ logoutClick, userDetails }) {
     }, // Local File
   ];
 
-  const [statusList, setStatusList] = useState([
-    {
-      id: 1,
-      name: "ASSIGNED",
-    },
-    {
-      id: 2,
-      name: "In Progress",
-    },
-    {
-      id: 3,
-      name: "New",
-    },
-    {
-      id: 4,
-      name: "Re Assigned",
-    },
-    {
-      id: 5,
-      name: "Closed",
-    },
-    {
-      id: 6,
-      name: "Reopened",
-    },
-  ]);
+  const [statusList, setStatusList] = useState(Status);
+  const [selectedStatus, setSelectedStatus] = useState(statusName);
   const downloadFile = (fileName) => {
     console.log(taskId);
     console.log(fileName);
@@ -335,9 +359,130 @@ function Managetask({ logoutClick, userDetails }) {
     getSubCategory(e.target.value);
   };
 
+  const statusClientCall = (query) => {
+    console.log("taskId >>", taskId);
+    let userID = localStorage.getItem("userId");
+    console.log("userId >>", userID);
+    client
+      .mutate({
+        mutation: query,
+        variables: {
+          input: {
+            taskId: parseInt(taskId),
+            assigneeUserId: parseInt(userID),
+          },
+        },
+      })
+      .then((response) => {
+        console.log("status  response ", response);
+      })
+      .catch((err) => {
+        toast.error(
+          err.graphQLErrors[0].extensions.requestorUserId ||
+            err.graphQLErrors[0].extensions.assigneeUserId
+        );
+      });
+  };
+
+  const [isShowResolution, setIsShowResolution] = useState(false);
+  const handleStatusChange = (e) => {
+    setSelectedStatus(e.target.value);
+    console.log(e.target.value);
+
+    if (selectedStatus === "RESOLVED") {
+      setIsShowResolution(true);
+    } else {
+      setIsShowResolution(false);
+    }
+    if (e.target.value === "REASSIGNED") {
+      statusClientCall(RE_ASSIGNTASK_QUERY);
+    } else if (e.target.value === "RESOLVED") {
+      statusClientCall(RESOLVE_TASK_QUERY);
+    } else if (e.target.value === "CLOSED") {
+      statusClientCall(CLOSE_TASK_QUERY);
+    } else if (e.target.value === "REOPENED") {
+      statusClientCall(REOPEN_TASK_QUERY);
+    }
+  };
+
+  const [uploadedFile, setUploadedFile] = useState([]);
+
+  const [fileType, setFileType] = useState();
+  const [popUpImage, setPopUpImage] = useState();
+  const [openPdfFile, setOpenPdfFile] = useState();
+  const [showViewDocPopup, setShowViewDocPopup] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState();
+  const [selectedFileToView, setSelectedFileToView] = useState();
+  const [file, setFile] = useState([]);
+  const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
+  const handleEyeIconClick = (selectedfile) => {
+    setShowViewDocPopup(true);
+    setDownloadData(URL.createObjectURL(selectedfile));
+    setSelectedFileName(selectedfile.name);
+    let viewImage = URL.createObjectURL(selectedfile);
+    setPopUpImage(viewImage);
+    setOpenPdfFile(URL.createObjectURL(selectedfile));
+    setFileType(file.type);
+    setFileType(selectedfile.type);
+    console.log(openPdfFile);
+  };
+  const formData = new FormData();
+  const handleCloseClick = () => setShowViewDocPopup(false);
+
+  const deleteSelectedRow = (index) => {
+    console.log(index);
+    let rows = uploadedFile;
+    let array = rows;
+    setDeleteSelectedFile(array.splice(index, 1));
+    setUploadedFile(array);
+  };
+  const handleChangeFileData = (event) => {
+    // console.log(event);
+    setUploadedFile([...event.target.files]);
+    setFile(event.target.files);
+    let array = [];
+    array.push([event.target.files]);
+    console.log(createTaskInput.fileIds);
+  };
+
+  const fileDownload = (selectedFile) => {
+    var FileSaver = require("file-saver");
+    var blob = new Blob([selectedFile], { type: "image/png" });
+    FileSaver.saveAs(blob, selectedFile.name);
+  };
+  var fileIdArray = [];
+  const [downloadData, setDownloadData] = useState();
+  const [disableIcons, setDisableIcons] = useState(false);
+  const fileUploadAll = () => {
+    uploadedFile.forEach((element, index, array) => {
+      formData.append("file", file[0]);
+      axios
+        .post(process.env.REACT_APP_FILE_UPLOAD_URL, formData, Config)
+        .then((response) => {
+          console.log("file API response : ", response.data.fileId);
+          let resp = response.data.fileId;
+          fileIdArray.push(resp);
+          console.log("fileId Array list ::", fileIdArray);
+          setCreateTaskInput((prevState) => ({
+            ...prevState,
+            fileIds: fileIdArray,
+          }));
+          setDisableIcons(true);
+          console.log(createTaskInput.fileIds);
+        })
+        .catch((error) => {
+          console.log("file API error:", error.message);
+          toast.error(error);
+        });
+    });
+  };
   return (
     <div>
-      <NavBar logoutClick={logoutClick} userDetails={userDetails} />
+      <NavBar
+        logoutClick={logoutClick}
+        userDetails={userDetails}
+        handleChangeFileData={handleChangeFileData}
+      />
       <br />
       <div className="main-container mb-4 container">
         {showLoader && (
@@ -506,68 +651,57 @@ function Managetask({ logoutClick, userDetails }) {
                       isMulti
                     />
                   </div>
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <div>
-                      {fileListResponse.data &&
-                        fileListResponse.data.getWork.taskLogs.length > 0 && (
-                          <div className="">
-                            <label className="marginRight1 mt-1">
-                              {" "}
-                              Attached Files &nbsp;{" "}
-                            </label>
-                            <div className="uploaded-file">
-                              <Table responsive className="border-0 mt-1">
-                                <tbody>
-                                  {fileListResponse.data.getWork.taskLogs[0].taskFiles.map(
-                                    (file, index) => {
-                                      console.log("file : ", taskId);
-                                      return (
-                                        <tr key={index}>
-                                          <td className="border-0 fontSize11">
-                                            {" "}
-                                            {file.fileName}{" "}
-                                          </td>
-                                          <td className="border-0 fontSize11">
-                                            {" "}
-                                            <a
-                                              title="download"
-                                              href={
-                                                `http://3.110.3.72/events/download/fileId/` +
-                                                file.fileId +
-                                                `/taskId/` +
-                                                taskId +
-                                                `/`
-                                              }
-                                              target="_blank"
-                                            >
-                                              <span
-                                                className="cursor-pointer"
-                                                onClick={() => {
-                                                  downloadFile(file.fileName);
-                                                }}
-                                              >
-                                                <ImDownload3 />
-                                              </span>
-                                            </a>
-                                          </td>
-                                        </tr>
-                                      );
-                                    }
-                                  )}
-                                </tbody>
-                              </Table>
-                            </div>
-                            <div className="upload-btn d-flex justify-content-end">
-                              <button
-                                type="button"
-                                // onClick={fileUploadAll}
-                                className="form-control btn-clr w-25 "
-                              >
-                                Upload
-                              </button>
-                            </div>
+                      {uploadedFile && uploadedFile.length > 0 && (
+                        <div className="">
+                          <label className="marginRight1 mt-2">
+                            {" "}
+                            Attached Files: &nbsp;{" "}
+                          </label>
+                          <div className="uploaded-file">
+                            <Table responsive className="border-0 mt-2">
+                              <tbody>
+                                {uploadedFile.map((file, index) => {
+                                  return (
+                                    <tr key={index}>
+                                      <td className="border-0 fontSize11">
+                                        {" "}
+                                        {file.name}{" "}
+                                      </td>
+                                      <td className="border-0 fontSize11">
+                                        {" "}
+                                        <FaEye
+                                          onClick={() =>
+                                            handleEyeIconClick(file)
+                                          }
+                                        />{" "}
+                                      </td>
+                                      <td className="border-0 fontSize11">
+                                        {" "}
+                                        <FaTrashAlt
+                                          onClick={(e) =>
+                                            deleteSelectedRow(index, e)
+                                          }
+                                        />{" "}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </Table>
                           </div>
-                        )}
+                          <div className="upload-btn d-flex justify-content-end">
+                            <button
+                              type="button"
+                              onClick={fileUploadAll}
+                              className="form-control btn-clr w-25 "
+                            >
+                              Upload
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -577,36 +711,43 @@ function Managetask({ logoutClick, userDetails }) {
                   <label> Link to Previous </label>
                 </div> */}
                   <div className="mt-2">
-                    <label> Status </label>
                     <div>
-                      <select
-                        onChange={handleSubSubCategoryChange}
-                        className="mt-1 form-control"
-                      >
-                        {viewTaskValues && viewTaskValues.getTask.statusName ? (
-                          statusList.map((item, index) => {
-                            return (
-                              <option key={index} value={item.id}>
-                                {item.name}
-                              </option>
-                            );
-                          })
-                        ) : (
-                          <option value={"No Data"}>No Data</option>
-                        )}
-                      </select>
+                      <label className="w-100">
+                        {" "}
+                        Status
+                        <select
+                          onChange={handleStatusChange}
+                          className="mt-1 form-control"
+                          value={selectedStatus}
+                        >
+                          {viewTaskValues &&
+                          viewTaskValues.getTask.statusName ? (
+                            statusList.map((item, index) => {
+                              return (
+                                <option key={index} value={item.value}>
+                                  {item.name}
+                                </option>
+                              );
+                            })
+                          ) : (
+                            <option value={"No Data"}>No Data</option>
+                          )}
+                        </select>
+                      </label>
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <label> Resolution </label>
-                    <input
-                      type="text"
-                      value={
-                        viewTaskValues && viewTaskValues.getTask.resolution
-                      }
-                      className="border-0 border-bottom w-100 createTaskMandatoryLabel"
-                    />
-                  </div>
+                  {isShowResolution && (
+                    <div className="mt-2">
+                      <label> Resolution </label>
+                      <input
+                        type="text"
+                        value={
+                          viewTaskValues && viewTaskValues.getTask.resolution
+                        }
+                        className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                      />
+                    </div>
+                  )}
 
                   <div className="mt-2">
                     <label className="mt-1 w-100">
