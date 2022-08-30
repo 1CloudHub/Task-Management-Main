@@ -1,10 +1,10 @@
 import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Table } from "react-bootstrap";
+import { Modal, Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
-import { FaEye, FaTrashAlt } from "react-icons/fa";
+import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ import Config from "../Services/HeadersConfig";
 import { Status } from "../Services/Status";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
+const fileDownloadUrl = process.env.REACT_APP_FILE_DOWNLOAD_URL;
 const VIEW_TASK_QUERY = gql`
   query VIEWTASK($taskId: ID!) {
     getTask(taskId: $taskId) {
@@ -170,6 +171,9 @@ const REOPEN_TASK_QUERY = gql`
     }
   }
 `;
+const fileUploadURL = process.env.REACT_APP_FILE_UPLOAD_URL;
+var userId = localStorage.getItem("userId");
+var authToken = localStorage.getItem("jwt-token");
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
   const [userDetail, setUserDetail] = useState([]);
@@ -192,7 +196,7 @@ function Managetask({ logoutClick, userDetails }) {
     fileIds: [],
   });
 
-  console.log(id);
+  // console.log(id);
   let taskId = parseInt(id);
 
   const response = useQuery(VIEW_TASK_QUERY, {
@@ -202,39 +206,34 @@ function Managetask({ logoutClick, userDetails }) {
     variables: { taskId: taskId },
   });
   let existingFileData = getWorkResponse.data && getWorkResponse.data;
-  console.log("getWorkResponse  ::", getWorkResponse);
+  // console.log("getWorkResponse  ::", getWorkResponse);
 
   const watcherResponse = useQuery(GET_FILES_QUERY, {
     variables: { taskId: taskId },
   });
 
   let selectedWatchers = getWorkResponse.data && getWorkResponse.data;
-  console.log("getWorkResponse  ::", getWorkResponse);
+  // console.log("getWorkResponse  ::", getWorkResponse);
 
   const [watcherDataArray, setWatcherDataArray] = useState([]);
 
   const fetchWatcherData = () => {
     setWatcherDataArray([]);
-    console.log(selectedWatchers && selectedWatchers.getWork.watchers);
-
     selectedWatchers &&
       selectedWatchers.getWork.watchers.forEach((item, index) => {
         console.log(item);
         let obj = {};
         obj["label"] = item.watcherName;
         obj["value"] = item.watcherId;
-
         watcherDataArray.push(obj);
       });
-
-    console.log(watcherDataArray);
   };
 
-  console.log("wactherName : ", watcherDataArray);
+  // console.log("wactherName : ", watcherDataArray);
   let selectedCatObj = {};
 
   const viewTaskValues = response.data;
-  console.log(viewTaskValues);
+  // console.log(viewTaskValues);
   let catId = viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
   // catId = 3;
 
@@ -255,7 +254,7 @@ function Managetask({ logoutClick, userDetails }) {
       categoryId: catId,
     },
   });
-  console.log("getSubCategoryList --", getSubCategoryList);
+  // console.log("getSubCategoryList --", getSubCategoryList);
   const [subCategoryResponse, setSubCategoryResponse] = useState([]);
 
   let subCategoryId =
@@ -449,15 +448,19 @@ function Managetask({ logoutClick, userDetails }) {
   const [file, setFile] = useState([]);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
   const handleEyeIconClick = (selectedfile) => {
+    console.log(selectedfile);
     setShowViewDocPopup(true);
-    setDownloadData(URL.createObjectURL(selectedfile));
-    setSelectedFileName(selectedfile.name);
-    let viewImage = URL.createObjectURL(selectedfile);
-    setPopUpImage(viewImage);
-    setOpenPdfFile(URL.createObjectURL(selectedfile));
-    setFileType(file.type);
-    setFileType(selectedfile.type);
-    console.log(openPdfFile);
+    let url = fileDownloadUrl + selectedfile.uuid + "/taskId/" + taskId;
+    console.log(url);
+
+    // setDownloadData(URL.createObjectURL(selectedfile));
+    // setSelectedFileName(selectedfile.name);
+    // let viewImage = URL.createObjectURL(selectedfile);
+    // setPopUpImage(viewImage);
+    // setOpenPdfFile(URL.createObjectURL(selectedfile));
+    // setFileType(file.type);
+    // setFileType(selectedfile.type);
+    // console.log(openPdfFile);
   };
   const formData = new FormData();
   const handleCloseClick = () => setShowViewDocPopup(false);
@@ -475,7 +478,8 @@ function Managetask({ logoutClick, userDetails }) {
     setFile(event.target.files);
     let array = [];
     array.push([event.target.files]);
-    console.log(createTaskInput.fileIds);
+
+    console.log(array);
   };
 
   const fileDownload = (selectedFile) => {
@@ -488,26 +492,27 @@ function Managetask({ logoutClick, userDetails }) {
   const [disableIcons, setDisableIcons] = useState(false);
   const fileUploadAll = () => {
     uploadedFile.forEach((element, index, array) => {
-      formData.append("file", file[0]);
+      const formData = new FormData();
+      formData.append("file", element);
       axios
-        .post(process.env.REACT_APP_FILE_UPLOAD_URL, formData, Config)
+        .post(fileUploadURL, formData, {
+          headers: Config(userId, authToken),
+        })
         .then((response) => {
-          console.log("file API response : ", response.data.fileId);
+          console.log("file API response : ", response);
           let resp = response.data.fileId;
           fileIdArray.push(resp);
-          console.log("fileId Array list ::", fileIdArray);
           setCreateTaskInput((prevState) => ({
             ...prevState,
             fileIds: fileIdArray,
           }));
-          setDisableIcons(true);
-          console.log(createTaskInput.fileIds);
         })
         .catch((error) => {
-          console.log("file API error:", error.message);
+          console.log("file API error:", error);
           toast.error(error);
         });
     });
+    toast.success("File Uploaded successfully");
   };
   return (
     <div>
@@ -685,6 +690,16 @@ function Managetask({ logoutClick, userDetails }) {
                       isMulti
                     />
                   </div>
+                  <div className="show-web mt-3">
+                    <input
+                      type="file"
+                      id="file"
+                      name="file"
+                      style={{ fontSize: "11px" }}
+                      onChange={handleChangeFileData}
+                      multiple
+                    />
+                  </div>
                   <div className="mt-3">
                     {existingFileData && (
                       <>
@@ -699,23 +714,21 @@ function Managetask({ logoutClick, userDetails }) {
                                 (item, index) => {
                                   return (
                                     <tr key={index}>
-                                      <td className="fontSize11">
+                                      <td className="border-0 fontSize11">
                                         {" "}
                                         {item.fileName}{" "}
                                       </td>
 
-                                      <td className="fontSize11">
+                                      <td className="border-0 fontSize11 cursor-pointer">
                                         {" "}
-                                        <FaEye />{" "}
-                                      </td>
-
-                                      <td className="fontSize11">
-                                        {" "}
-                                        <FaTrashAlt
-                                          onClick={(e) =>
-                                            deleteSelectedRow(index, e)
+                                        <a
+                                          className=""
+                                          onClick={() =>
+                                            handleEyeIconClick(item)
                                           }
-                                        />{" "}
+                                        >
+                                          <FaEye />{" "}
+                                        </a>
                                       </td>
                                     </tr>
                                   );
@@ -729,7 +742,11 @@ function Managetask({ logoutClick, userDetails }) {
                       {uploadedFile && uploadedFile.length > 0 && (
                         <div className="">
                           <div className="uploaded-file">
-                            <Table responsive className="border-0 mt-2">
+                            <label className="marginRight1 ">
+                              {" "}
+                              Current Attachment Files: &nbsp;{" "}
+                            </label>
+                            <Table responsive className="border-0 ">
                               <tbody>
                                 {uploadedFile.map((file, index) => {
                                   return (
@@ -925,6 +942,23 @@ function Managetask({ logoutClick, userDetails }) {
         <br />
       </div>
       <br />
+      <Modal show={showViewDocPopup}>
+        <Modal.Header>
+          <div>{selectedFileName}</div>
+          <FaTimes onClick={handleCloseClick} />{" "}
+        </Modal.Header>
+        <Modal.Body>
+          {/* {fileType == "application/pdf" ? (
+            <Viewer fileUrl={openPdfFile} />
+          ) : fileType == "image/png" ? (
+            <img src={popUpImage} />
+          ) : (
+            ""
+          )} */}
+          {/* <img src={popUpImage} />
+            <Viewer fileUrl={openPdfFile} /> */}
+        </Modal.Body>
+      </Modal>
       <Footer />
     </div>
   );
