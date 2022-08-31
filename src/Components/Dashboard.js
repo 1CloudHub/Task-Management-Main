@@ -44,6 +44,7 @@ function Dashboard({ logoutClick, userDetails }) {
     today.getMonth(),
     today.getDate() - 7
   );
+
   const handleCategoryChange = (selectedValue) => {
     console.log(selectedValue.target.value);
     setCategoryId(selectedValue.target.value);
@@ -254,6 +255,7 @@ function Dashboard({ logoutClick, userDetails }) {
   useEffect(() => {
     let startWeek = currentWeek();
     let endWeek = formatDate(new Date());
+
     // alert("useEffect being called");
     clientCallforHandlerResponse(
       "DESC",
@@ -306,23 +308,30 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log("sort for handler   ");
     console.log("categoryId : ", categoryId);
 
-    let stDate = formatDate(startDate);
+    let stDate = formatDate(startDate ? startDate : nextweek);
     let edDate = formatDate(endDate);
     console.log(stDate);
     console.log(edDate);
     setDefSortHandler(!defDescSortHandler);
     if (defDescSortHandler) {
-      clientCallforHandlerResponse("ASC", stDate, edDate, categoryId);
+      clientCallforHandlerResponse("ASC", stDate, edDate, categoryId, statusId);
     } else {
-      clientCallforHandlerResponse("DESC", stDate, edDate, categoryId);
+      clientCallforHandlerResponse(
+        "DESC",
+        stDate,
+        edDate,
+        categoryId,
+        statusId
+      );
     }
   };
 
   const handleSorterforCreator = () => {
     console.log("sort for creator");
     console.log("categoryId : ", categoryId);
+    console.log(startDate);
 
-    let stDate = formatDate(startDate);
+    let stDate = formatDate(startDate ? startDate : nextweek);
     let edDate = formatDate(endDate);
     console.log(stDate);
     console.log(edDate);
@@ -344,7 +353,7 @@ function Dashboard({ logoutClick, userDetails }) {
     console.log("sort for watcher");
     console.log("categoryId : ", categoryId);
 
-    let stDate = formatDate(startDate);
+    let stDate = formatDate(startDate ? startDate : nextweek);
     let edDate = formatDate(endDate);
     console.log(stDate);
     console.log(edDate);

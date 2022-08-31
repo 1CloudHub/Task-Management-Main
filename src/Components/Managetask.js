@@ -1,4 +1,4 @@
-import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Modal, Table } from "react-bootstrap";
@@ -8,7 +8,7 @@ import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
-import Config from "../Services/HeadersConfig";
+import Config, { Client } from "../Services/HeadersConfig";
 import { Status } from "../Services/Status";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
@@ -79,19 +79,6 @@ const SUB_CATEGORY_QUERY = gql`
   }
 `;
 
-const client = new ApolloClient({
-  uri: "http://3.110.3.72/graphql",
-  cache: new InMemoryCache(),
-  fetchOptions: {
-    mode: "no-cors",
-  },
-  headers: {
-    "Authentication-Token":
-      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOCIsImlhdCI6MTY1OTA5NDkxMiwiZXhwIjoxNjc3MDk0OTEyfQ.WwSyLTd1FQYJs5u4jEFl0U6ayn6g5Wlx-mOgNfthAog",
-    userId: "18",
-  },
-});
-
 const SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
   query GETSUBSUBCATEGORYLIST($subCategoryId: Int!) {
     getSubSubCategoriesBySubCategoryId(subCategoryId: $subCategoryId) {
@@ -117,6 +104,16 @@ const GET_FILES_QUERY = gql`
         taskId
       }
       taskLogs {
+        from
+        fromName
+        to
+        toName
+        start_date {
+          formatString(format: "dd-MMM-yyyy")
+        }
+        end_date {
+          formatString(format: "dd-MMM-yyyy")
+        }
         taskFiles {
           fileName
           uuid
@@ -130,15 +127,7 @@ const GET_FILES_QUERY = gql`
   }
 `;
 
-const re = gql`
-  mutation REASSIGNTASK($input: TaskOperationInput!) {
-    reassignTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-const RE_ASSIGNTASK_QUERY = gql`
+const RE_ASSIGNTASK_QUERY = `
   mutation REASSIGNTASK($input: TaskOperationInput!) {
     reassignTask(input: $input) {
       status
@@ -147,15 +136,15 @@ const RE_ASSIGNTASK_QUERY = gql`
   }
 `;
 
-const RESOLVE_TASK_QUERY = gql`
-  mutation RESOLVETASK($input: TaskOperationInput!) {
+const RESOLVE_TASK_QUERY = `
+  mutation RESOLVETASK($input: TaskResolutionInput!) {
     resolveTask(input: $input) {
       status
       statusName
     }
   }
 `;
-const CLOSE_TASK_QUERY = gql`
+const CLOSE_TASK_QUERY = `
   mutation CLOSETASK($input: TaskOperationInput!) {
     closeTask(input: $input) {
       status
@@ -163,9 +152,17 @@ const CLOSE_TASK_QUERY = gql`
     }
   }
 `;
-const REOPEN_TASK_QUERY = gql`
+const REOPEN_TASK_QUERY = `
   mutation REPOPENTASK($input: TaskOperationInput!) {
     reopenTask(input: $input) {
+      status
+      statusName
+    }
+  }
+`;
+const ACCEPT_TASK_QUERY = `
+  mutation ACCEPTTASK($input: TaskOperationInput!) {
+    assignTask(input: $input) {
       status
       statusName
     }
@@ -176,6 +173,7 @@ var userId = localStorage.getItem("userId");
 var authToken = localStorage.getItem("jwt-token");
 function Managetask({ logoutClick, userDetails }) {
   let { id } = useParams();
+  const client = Client;
   const [userDetail, setUserDetail] = useState([]);
   const [showLoader, setShowLoader] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -205,15 +203,12 @@ function Managetask({ logoutClick, userDetails }) {
   const getWorkResponse = useQuery(GET_FILES_QUERY, {
     variables: { taskId: taskId },
   });
+  console.log("getWork Response : ", getWorkResponse);
   let existingFileData = getWorkResponse.data && getWorkResponse.data;
   // console.log("getWorkResponse  ::", getWorkResponse);
 
-  const watcherResponse = useQuery(GET_FILES_QUERY, {
-    variables: { taskId: taskId },
-  });
-
   let selectedWatchers = getWorkResponse.data && getWorkResponse.data;
-  // console.log("getWorkResponse  ::", getWorkResponse);
+  console.log("selectedWatchers  ::", selectedWatchers);
 
   const [watcherDataArray, setWatcherDataArray] = useState([]);
 
@@ -336,7 +331,7 @@ function Managetask({ logoutClick, userDetails }) {
     } else {
       setIsShowResolution(false);
     }
-  }, [response, selectedCategory, getCategoryList, watcherResponse]);
+  }, [response, selectedCategory, getCategoryList, getWorkResponse]);
 
   const handleSubCategoryChange = (e) => {
     console.log(e.target.value);
@@ -391,49 +386,87 @@ function Managetask({ logoutClick, userDetails }) {
     getSubCategory(e.target.value);
   };
 
-  const statusClientCall = (query) => {
+  const statusClientCall = (query, inputVar) => {
     console.log("taskId >>", taskId);
-    let userID = localStorage.getItem("userId");
-    console.log("userId >>", userID);
-    client
-      .mutate({
-        mutation: query,
+
+    fetch(process.env.REACT_APP_GRAPHQL_SERVICE_URL, {
+      method: "POST",
+      headers: Config(
+        localStorage.getItem("userId"),
+        localStorage.getItem("jwt-token")
+      ),
+      body: JSON.stringify({
+        query: query,
         variables: {
-          input: {
-            taskId: parseInt(taskId),
-            assigneeUserId: parseInt(userID),
-          },
+          input: inputVar,
         },
-      })
+      }),
+    })
+      .then((response) => response.json())
       .then((response) => {
-        console.log("status  response ", response);
+        console.log("status response ", response);
+        if (response.data != null) {
+        } else {
+          console.log(response.errors[0].extensions.assigneeUserId);
+          let myObj = response.errors[0].extensions;
+          if ("assigneeUserId" in myObj) {
+            toast.warn(response.errors[0].extensions.assigneeUserId);
+          } else if ("NewState" in myObj)
+            toast.warn(response.errors[0].extensions.NewState);
+        }
       })
       .catch((err) => {
-        toast.error(
-          err.graphQLErrors[0].extensions.requestorUserId ||
-            err.graphQLErrors[0].extensions.assigneeUserId
-        );
+        console.log(err);
+        toast.warn(err.errors[0].extensions.NewState);
       });
   };
 
   const [isShowResolution, setIsShowResolution] = useState(false);
   const handleStatusChange = (e) => {
+    let userID = localStorage.getItem("userId");
+    console.log("userId >>", userID);
     setSelectedStatus(e.target.value);
     console.log(e.target.value);
-
+    let inputVar = {};
     if (selectedStatus === "RESOLVED") {
       setIsShowResolution(true);
     } else {
       setIsShowResolution(false);
     }
     if (e.target.value === "REASSIGNED") {
-      statusClientCall(RE_ASSIGNTASK_QUERY);
+      inputVar = {
+        taskId: parseInt(taskId),
+        assigneeUserId: parseInt(userId),
+      };
+      statusClientCall(RE_ASSIGNTASK_QUERY, inputVar);
     } else if (e.target.value === "RESOLVED") {
-      statusClientCall(RESOLVE_TASK_QUERY);
+      inputVar = {
+        taskOperationInput: {
+          taskId: parseInt(taskId),
+          assigneeUserId: parseInt(userId),
+        },
+        resolution: "check",
+      };
+
+      statusClientCall(RESOLVE_TASK_QUERY, inputVar);
     } else if (e.target.value === "CLOSED") {
-      statusClientCall(CLOSE_TASK_QUERY);
+      inputVar = {
+        taskId: parseInt(taskId),
+        assigneeUserId: parseInt(userId),
+      };
+      statusClientCall(CLOSE_TASK_QUERY, inputVar);
     } else if (e.target.value === "REOPENED") {
-      statusClientCall(REOPEN_TASK_QUERY);
+      inputVar = {
+        taskId: parseInt(taskId),
+        assigneeUserId: parseInt(userId),
+      };
+      statusClientCall(REOPEN_TASK_QUERY, inputVar);
+    } else if (e.target.value === "IN_PROGRESS") {
+      inputVar = {
+        taskId: parseInt(taskId),
+        assigneeUserId: parseInt(userId),
+      };
+      statusClientCall(ACCEPT_TASK_QUERY, inputVar);
     }
   };
 
@@ -886,7 +919,11 @@ function Managetask({ logoutClick, userDetails }) {
 
                     <input
                       type="text"
-                      value={"--"}
+                      value={
+                        selectedWatchers &&
+                        selectedWatchers.getWork.taskLogs[0].start_date
+                          .formatString
+                      }
                       className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       disabled
                     />
@@ -895,7 +932,10 @@ function Managetask({ logoutClick, userDetails }) {
                     <label> Last Updated By </label>
                     <input
                       type="text"
-                      value={"--"}
+                      value={
+                        selectedWatchers &&
+                        selectedWatchers.getWork.taskLogs[0].fromName
+                      }
                       className="border-0 border-bottom w-100 createTaskMandatoryLabel isDisabled-field"
                       disabled
                     />

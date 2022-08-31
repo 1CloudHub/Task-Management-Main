@@ -1,5 +1,6 @@
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Viewer } from "@react-pdf-viewer/core";
+import DocViewer from "react-doc-viewer";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { Modal, Table } from "react-bootstrap";
@@ -193,6 +194,7 @@ function Newtask({ logoutClick, userDetails }) {
   const [SubmitTask, submitResponse] = useMutation(CREATE_TASK_MUTATE);
   const fileUploadAll = () => {
     uploadedFile.forEach((element, index, array) => {
+      console.log(element);
       const formData = new FormData();
       formData.append("file", element);
       axios
@@ -682,6 +684,7 @@ function Newtask({ logoutClick, userDetails }) {
             )}
             {/* <img src={popUpImage} />
             <Viewer fileUrl={openPdfFile} /> */}
+            <DocViewer documents={openPdfFile} />
           </Modal.Body>
         </Modal>
         <Footer />
