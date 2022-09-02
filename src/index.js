@@ -10,7 +10,7 @@ import { Client } from "./Services/HeadersConfig";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
-
+let process;
 root.render(
   <>
     <ApolloProvider client={Client}>

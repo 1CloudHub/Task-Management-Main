@@ -5,194 +5,45 @@ import { Modal, Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
 import { BsCalendar } from "react-icons/bs";
 import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { CreateTaskInput } from "../GraphQL.js/QueryVariable";
 import Config, { Client } from "../Services/HeadersConfig";
+import {
+  ACCEPT_TASK_QUERY,
+  CATEGORY_LIST_QUERY,
+  CLOSE_TASK_QUERY,
+  CREATE_TASK_MUTATE,
+  EDIT_TASK_SUBMIT_QUERY,
+  GETCATEGORY_QUERY,
+  GET_FILES_QUERY,
+  GET_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
+  GET_SUB_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
+  GET_USERS_QUERY,
+  REOPEN_TASK_QUERY,
+  RESOLVE_TASK_QUERY,
+  RE_ASSIGNTASK_QUERY,
+  VIEW_TASK_QUERY,
+} from "../Services/Query";
 import { Status } from "../Services/Status";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
-const fileDownloadUrl = process.env.REACT_APP_FILE_DOWNLOAD_URL;
-const VIEW_TASK_QUERY = gql`
-  query VIEWTASK($taskId: ID!) {
-    getTask(taskId: $taskId) {
-      taskId
-      taskGroupId
-      categoryId
-      createdDate {
-        formatString(format: "dd-MMM-yyyy")
-      }
-      subCategoryId
-      subSubCategoryId
-      title
-      resolution
-      currentAssignee
-      createdBy
-      resolvedBy
-      statusName
-      currentAssigneeName
-      createdByName
-      resolvedDate {
-        formatString(format: "dd-MMM-yyyy")
-      }
-      dueDate {
-        formatString(format: "dd-MMM-yyyy")
-      }
-      status
-      description
-      creationLocLatitude
-    }
-  }
-`;
 
-const CATEGORY_LIST_QUERY = gql`
-  query CategoryList {
-    getCategories {
-      categoryId
-      name
-    }
-  }
-`;
-
-const GETCATEGORY_QUERY = gql`
-  query GETCATEGORY($categoryId: ID!) {
-    getCategory(categoryId: $categoryId) {
-      categoryId
-      name
-    }
-  }
-`;
-const SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
-  query GETSUBCATEGORYLIST($categoryId: Int!) {
-    getSubCategoriesByCategoryId(categoryId: $categoryId) {
-      subCategoryId
-      name
-    }
-  }
-`;
-const SUB_CATEGORY_QUERY = gql`
-  query GETSUBCATEGORY($categoryId: Int!) {
-    getSubCategoriesByCategoryId(categoryId: $categoryId) {
-      subCategoryId
-      name
-    }
-  }
-`;
-
-const SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY = gql`
-  query GETSUBSUBCATEGORYLIST($subCategoryId: Int!) {
-    getSubSubCategoriesBySubCategoryId(subCategoryId: $subCategoryId) {
-      subCategoryId
-      name
-    }
-  }
-`;
-
-const GET_USERS_QUERY = gql`
-  query USERSLIST {
-    getUsers {
-      userId
-      emailAddress
-      inactive
-    }
-  }
-`;
-const GET_FILES_QUERY = gql`
-  query getFILES($taskId: ID!) {
-    getWork(taskId: $taskId) {
-      task {
-        taskId
-      }
-      taskLogs {
-        from
-        fromName
-        to
-        toName
-        start_date {
-          formatString(format: "dd-MMM-yyyy")
-        }
-        end_date {
-          formatString(format: "dd-MMM-yyyy")
-        }
-        taskFiles {
-          fileName
-          uuid
-        }
-      }
-      watchers {
-        watcherId
-        watcherName
-      }
-    }
-  }
-`;
-
-const RE_ASSIGNTASK_QUERY = `
-  mutation REASSIGNTASK($input: TaskOperationInput!) {
-    reassignTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-
-const RESOLVE_TASK_QUERY = `
-  mutation RESOLVETASK($input: TaskResolutionInput!) {
-    resolveTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-const CLOSE_TASK_QUERY = `
-  mutation CLOSETASK($input: TaskOperationInput!) {
-    closeTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-const REOPEN_TASK_QUERY = `
-  mutation REPOPENTASK($input: TaskOperationInput!) {
-    reopenTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-const ACCEPT_TASK_QUERY = `
-  mutation ACCEPTTASK($input: TaskOperationInput!) {
-    assignTask(input: $input) {
-      status
-      statusName
-    }
-  }
-`;
-const fileUploadURL = process.env.REACT_APP_FILE_UPLOAD_URL;
-var userId = localStorage.getItem("userId");
-var authToken = localStorage.getItem("jwt-token");
 function Managetask({ logoutClick, userDetails }) {
+  const [fileIdsArrays, setFileIdssArray] = useState([]);
+  const fileDownloadUrl = process.env.REACT_APP_FILE_DOWNLOAD_URL;
+  const fileUploadURL = process.env.REACT_APP_FILE_UPLOAD_URL;
+  var userId = localStorage.getItem("userId");
+  var authToken = localStorage.getItem("jwt-token");
   let { id } = useParams();
   const client = Client;
-  const [userDetail, setUserDetail] = useState([]);
   const [showLoader, setShowLoader] = useState(false);
   const [startDate, setStartDate] = useState("");
   const userResponse = useQuery(GET_USERS_QUERY);
-
-  const [createTaskInput, setCreateTaskInput] = useState({
-    categoryId: 0,
-    subCategoryId: 0,
-    subSubCategoryId: 0,
-    currentAssignee: 0,
-    title: "",
-    description: "",
-    dueDate: "",
-    creationLocLatitude: "",
-    creationLocLongitude: "",
-    refTaskId: "",
-    notes: "",
-    fileIds: [],
-  });
+  const [resolution, setResolution] = useState("");
+  const [isShowResoltionError, setIsShowResoltionError] = useState(false);
+  const [createTaskInput, setCreateTaskInput] = useState(CreateTaskInput);
 
   // console.log(id);
   let taskId = parseInt(id);
@@ -214,6 +65,8 @@ function Managetask({ logoutClick, userDetails }) {
 
   const fetchWatcherData = () => {
     setWatcherDataArray([]);
+
+    let selectedWatcherIdArray = [];
     selectedWatchers &&
       selectedWatchers.getWork.watchers.forEach((item, index) => {
         console.log(item);
@@ -221,13 +74,32 @@ function Managetask({ logoutClick, userDetails }) {
         obj["label"] = item.watcherName;
         obj["value"] = item.watcherId;
         watcherDataArray.push(obj);
+        selectedWatcherIdArray.push(item.watcherId);
+        // setFileIdssArray(...item.watcherId);
       });
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      watcherIds: selectedWatcherIdArray,
+    }));
+    selectedWatchers &&
+      selectedWatchers.getWork.taskLogs[0].taskFiles.forEach(
+        (element, index) => {
+          console.log("file ides", element);
+          fileIdsArrays.push(element.uuid);
+        }
+      );
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      fileIds: fileIdsArrays,
+    }));
+
+    // console.log("fileID ARRAY initial state >>", fileIdArray);
   };
 
   // console.log("wactherName : ", watcherDataArray);
-  let selectedCatObj = {};
 
   const viewTaskValues = response.data;
+  const navigate = useNavigate();
   // console.log(viewTaskValues);
   let catId = viewTaskValues && parseInt(viewTaskValues.getTask.categoryId);
   // catId = 3;
@@ -241,24 +113,27 @@ function Managetask({ logoutClick, userDetails }) {
   });
   // to get category List -all
   const getCategoryList = useQuery(CATEGORY_LIST_QUERY);
+
   // to get categoryList
 
   // to get subcategory list
-  const getSubCategoryList = useQuery(SUB_CATEGORY_BY_CATEGORYID_QUERY, {
-    variables: {
-      categoryId: catId,
-    },
-  });
+
   // console.log("getSubCategoryList --", getSubCategoryList);
   const [subCategoryResponse, setSubCategoryResponse] = useState([]);
+  const [subSubCategoryResponse, setSubSubCategoryResponse] = useState([]);
 
   let subCategoryId =
     viewTaskValues && parseInt(viewTaskValues.getTask.subCategoryId);
+  console.log(subCategoryId);
+
+  let subSubCategoryId =
+    viewTaskValues && parseInt(viewTaskValues.getTask.subSubCategoryId);
   let currentAssignee =
     viewTaskValues && parseInt(viewTaskValues.getTask.currentAssignee);
   let title = viewTaskValues && viewTaskValues.getTask.title;
   let description = viewTaskValues && viewTaskValues.getTask.description;
-  let latitude = viewTaskValues && viewTaskValues.getTask.creationLocLatitude;
+  let lat = viewTaskValues && viewTaskValues.getTask.creationLocLatitude;
+  let lon = viewTaskValues && viewTaskValues.getTask.creationLocLongitude;
   let status = viewTaskValues && viewTaskValues.getTask.status;
   let statusName = viewTaskValues && viewTaskValues.getTask.statusName;
   // statusName = "IN_PROGRESS";
@@ -268,10 +143,13 @@ function Managetask({ logoutClick, userDetails }) {
   //     subCategoryId: 2,
   //   },
   // });
-  const getSubCategory = (categoryId) => {
+
+  console.log("sub_ category", subCategoryId);
+
+  const getSub_SubSubCategory = (categoryId, subCategoryId) => {
     client
       .query({
-        query: SUB_CATEGORY_QUERY,
+        query: GET_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
         variables: {
           categoryId: categoryId,
         },
@@ -279,21 +157,32 @@ function Managetask({ logoutClick, userDetails }) {
       .then((response) => {
         console.log("sub category response ", response);
         setSubCategoryResponse(response);
+        console.log("inside if >> ", subCategoryId);
+        if (!isNaN(subCategoryId)) {
+          getSubSubCategoryById(subCategoryId);
+        }
       })
       .catch((err) => console.error(err));
   };
-
-  const getSubSubCategory = (subCategoryId) => {
+  const getSubSubCategoryById = (subCategoryId) => {
+    console.log(subCategoryId);
     client
       .query({
-        query: SUB_SUB_CATEGORY_BY_CATEGORYID_QUERY,
+        query: GET_SUB_SUB_CATEGORY_BY_CATEGORY_ID_QUERY,
         variables: {
-          categoryId: subCategoryId,
+          subCategoryId: subCategoryId,
         },
       })
       .then((response) => {
         console.log("sub category response ", response);
-        setSubCategoryResponse(response);
+        setSubSubCategoryResponse(response);
+        if (response.data.getSubSubCategoriesBySubCategoryId.length != 0) {
+          setCreateTaskInput((prevState) => ({
+            ...prevState,
+            subSubCategoryId:
+              response.data.getSubSubCategoriesBySubCategoryId[0].subCategoryId,
+          }));
+        }
       })
       .catch((err) => console.error(err));
   };
@@ -305,11 +194,12 @@ function Managetask({ logoutClick, userDetails }) {
       setShowLoader(false);
     }
     fetchWatcherData();
-    getSubCategory(catId);
-    getSubSubCategory(subCategoryId);
-
-    console.log(selectedCatObj);
+    if (!isNaN(subCategoryId)) {
+      getSub_SubSubCategory(catId, subCategoryId);
+    }
     setCreateTaskInput((prevState) => ({ ...prevState, categoryId: catId }));
+
+    console.log("inside useEff >>", createTaskInput.subCategoryId);
     setCreateTaskInput((prevState) => ({
       ...prevState,
       subCategoryId: subCategoryId,
@@ -326,20 +216,42 @@ function Managetask({ logoutClick, userDetails }) {
       ...prevState,
       description: description,
     }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      lat: lat,
+    }));
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      lon: lon,
+    }));
     if (statusName == "RESOLVED") {
       setIsShowResolution(true);
     } else {
       setIsShowResolution(false);
     }
-  }, [response, selectedCategory, getCategoryList, getWorkResponse]);
+  }, [
+    response,
+    selectedCategory,
+    getCategoryList,
+    getWorkResponse,
+    statusName,
+  ]);
 
   const handleSubCategoryChange = (e) => {
     console.log(e.target.value);
-    let key = e.target.value;
-    // setDefSubCat(e.target.value);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      subCategoryId: e.target.value,
+    }));
+
+    getSubSubCategoryById(e.target.value);
   };
   const handleSubSubCategoryChange = (e) => {
     // setDefSubSubCat(e.target.value);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      subSubCategoryId: e.target.value,
+    }));
   };
   let due_Date = new Date();
   useEffect(() => {
@@ -375,6 +287,99 @@ function Managetask({ logoutClick, userDetails }) {
       description: viewTaskValues && viewTaskValues.getTask.description,
     }));
     console.log("createTask Input : ", createTaskInput);
+    return;
+    let inputVariables = {};
+    if (createTaskInput.subCategoryId == 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subCategoryId != 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subSubCategoryId == 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subSubCategoryId != 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        subSubCategoryId: parseInt(createTaskInput.subSubCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    }
+    var userId = localStorage.getItem("userId");
+    var authToken = localStorage.getItem("jwt-token");
+    fetch(process.env.REACT_APP_GRAPHQL_SERVICE_URL, {
+      method: "POST",
+      headers: Config(
+        localStorage.getItem("userId"),
+        localStorage.getItem("jwt-token")
+      ),
+      body: JSON.stringify({
+        query: EDIT_TASK_SUBMIT_QUERY,
+        variables: {
+          input: {
+            amend: createTaskInput,
+            taskId: taskId,
+          },
+        },
+      }),
+    })
+      .then((response) => response.json())
+      .then((response) => {
+        console.log(response);
+
+        if (response.data != null) {
+          toast.success("Editted Successfully");
+          navigate("/MyTask");
+        } else {
+          let myObj = response.errors[0].extensions;
+          if ("status" in myObj) {
+            toast.warn(response.errors[0].extensions.status);
+          } else if ("assigneeUserId" in myObj) {
+            toast.warn(response.errors[0].extensions.assigneeUserId);
+          } else if ("NewState" in myObj)
+            toast.warn(response.errors[0].extensions.NewState);
+          else if ("userId" in myObj) {
+            toast.error(response.errors[0].extensions.userId);
+          }
+        }
+      });
   };
 
   const handleCategory = (e) => {
@@ -383,10 +388,10 @@ function Managetask({ logoutClick, userDetails }) {
       ...prevState,
       categoryId: e.target.value,
     }));
-    getSubCategory(e.target.value);
+    getSub_SubSubCategory(e.target.value, subCategoryId);
   };
 
-  const statusClientCall = (query, inputVar) => {
+  const statusClientCall = (query, inputVar, statusSelectedVal) => {
     console.log("taskId >>", taskId);
 
     fetch(process.env.REACT_APP_GRAPHQL_SERVICE_URL, {
@@ -400,19 +405,31 @@ function Managetask({ logoutClick, userDetails }) {
         variables: {
           input: inputVar,
         },
+        fetchPolicy: "network-only",
       }),
     })
       .then((response) => response.json())
       .then((response) => {
         console.log("status response ", response);
         if (response.data != null) {
+          setSelectedStatus(statusSelectedVal);
+          if (statusSelectedVal === "RESOLVED") {
+            setIsShowResolution(true);
+          } else {
+            setIsShowResolution(false);
+          }
+          toast.success("status changed successfully");
         } else {
           console.log(response.errors[0].extensions.assigneeUserId);
+          setSelectedStatus(status);
           let myObj = response.errors[0].extensions;
           if ("assigneeUserId" in myObj) {
             toast.warn(response.errors[0].extensions.assigneeUserId);
           } else if ("NewState" in myObj)
             toast.warn(response.errors[0].extensions.NewState);
+          else if ("userId" in myObj) {
+            toast.error(response.errors[0].extensions.userId);
+          }
         }
       })
       .catch((err) => {
@@ -423,50 +440,61 @@ function Managetask({ logoutClick, userDetails }) {
 
   const [isShowResolution, setIsShowResolution] = useState(false);
   const handleStatusChange = (e) => {
+    console.log("previous status value: ", status);
     let userID = localStorage.getItem("userId");
     console.log("userId >>", userID);
-    setSelectedStatus(e.target.value);
+    let statusSelectedVal = e.target.value;
     console.log(e.target.value);
     let inputVar = {};
-    if (selectedStatus === "RESOLVED") {
-      setIsShowResolution(true);
-    } else {
-      setIsShowResolution(false);
-    }
-    if (e.target.value === "REASSIGNED") {
-      inputVar = {
-        taskId: parseInt(taskId),
-        assigneeUserId: parseInt(userId),
-      };
-      statusClientCall(RE_ASSIGNTASK_QUERY, inputVar);
-    } else if (e.target.value === "RESOLVED") {
-      inputVar = {
-        taskOperationInput: {
-          taskId: parseInt(taskId),
-          assigneeUserId: parseInt(userId),
-        },
-        resolution: "check",
-      };
 
-      statusClientCall(RESOLVE_TASK_QUERY, inputVar);
-    } else if (e.target.value === "CLOSED") {
+    if (statusSelectedVal === "REASSIGNED") {
       inputVar = {
         taskId: parseInt(taskId),
         assigneeUserId: parseInt(userId),
+        fileIds: createTaskInput.fileIds,
+        notes: createTaskInput.notes,
       };
-      statusClientCall(CLOSE_TASK_QUERY, inputVar);
-    } else if (e.target.value === "REOPENED") {
+      statusClientCall(RE_ASSIGNTASK_QUERY, inputVar, statusSelectedVal);
+    } else if (statusSelectedVal === "RESOLVED") {
+      if (resolution == "") {
+        setIsShowResoltionError(true);
+      } else {
+        setIsShowResoltionError(false);
+        inputVar = {
+          taskOperationInput: {
+            taskId: parseInt(taskId),
+            assigneeUserId: parseInt(userId),
+            fileIds: createTaskInput.fileIds,
+            notes: createTaskInput.notes,
+          },
+          resolution: resolution,
+        };
+        statusClientCall(RESOLVE_TASK_QUERY, inputVar, statusSelectedVal);
+      }
+    } else if (statusSelectedVal === "CLOSED") {
       inputVar = {
         taskId: parseInt(taskId),
         assigneeUserId: parseInt(userId),
+        fileIds: createTaskInput.fileIds,
+        notes: createTaskInput.notes,
       };
-      statusClientCall(REOPEN_TASK_QUERY, inputVar);
-    } else if (e.target.value === "IN_PROGRESS") {
+      statusClientCall(CLOSE_TASK_QUERY, inputVar, statusSelectedVal);
+    } else if (statusSelectedVal === "REOPENED") {
       inputVar = {
         taskId: parseInt(taskId),
         assigneeUserId: parseInt(userId),
+        fileIds: createTaskInput.fileIds,
+        notes: createTaskInput.notes,
       };
-      statusClientCall(ACCEPT_TASK_QUERY, inputVar);
+      statusClientCall(REOPEN_TASK_QUERY, inputVar, statusSelectedVal);
+    } else if (statusSelectedVal === "IN_PROGRESS") {
+      inputVar = {
+        taskId: parseInt(taskId),
+        assigneeUserId: parseInt(userId),
+        fileIds: createTaskInput.fileIds,
+        notes: createTaskInput.notes,
+      };
+      statusClientCall(ACCEPT_TASK_QUERY, inputVar, statusSelectedVal);
     }
   };
 
@@ -480,10 +508,11 @@ function Managetask({ logoutClick, userDetails }) {
   const [selectedFileToView, setSelectedFileToView] = useState();
   const [file, setFile] = useState([]);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
+
   const handleEyeIconClick = (selectedfile) => {
     console.log(selectedfile);
     setShowViewDocPopup(true);
-    let url = fileDownloadUrl + selectedfile.uuid + "/taskId/" + taskId;
+    let url = fileDownloadUrl + selectedfile.uuid + "/taskId/" + taskId + "/";
     console.log(url);
 
     // setDownloadData(URL.createObjectURL(selectedfile));
@@ -495,7 +524,6 @@ function Managetask({ logoutClick, userDetails }) {
     // setFileType(selectedfile.type);
     // console.log(openPdfFile);
   };
-  const formData = new FormData();
   const handleCloseClick = () => setShowViewDocPopup(false);
 
   const deleteSelectedRow = (index) => {
@@ -520,13 +548,16 @@ function Managetask({ logoutClick, userDetails }) {
     var blob = new Blob([selectedFile], { type: "image/png" });
     FileSaver.saveAs(blob, selectedFile.name);
   };
-  var fileIdArray = [];
+
   const [downloadData, setDownloadData] = useState();
   const [disableIcons, setDisableIcons] = useState(false);
-  const fileUploadAll = () => {
+  const fileUpload = () => {
+    alert("click");
+    console.log("fileIdArrays : :", fileIdsArrays);
     uploadedFile.forEach((element, index, array) => {
       const formData = new FormData();
       formData.append("file", element);
+      // console.log("filed upload veliya", fileIdArray);
       axios
         .post(fileUploadURL, formData, {
           headers: Config(userId, authToken),
@@ -534,18 +565,29 @@ function Managetask({ logoutClick, userDetails }) {
         .then((response) => {
           console.log("file API response : ", response);
           let resp = response.data.fileId;
-          fileIdArray.push(resp);
-          setCreateTaskInput((prevState) => ({
-            ...prevState,
-            fileIds: fileIdArray,
-          }));
+          // fileIdArray.push(resp);
+          fileIdsArrays.push(resp);
+          setFileIdssArray([...response.data.fileId]);
         })
         .catch((error) => {
           console.log("file API error:", error);
           toast.error(error);
         });
     });
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      fileIds: fileIdsArrays,
+    }));
+    console.log("file uploaded :;", fileIdsArrays.length, fileIdsArrays);
     toast.success("File Uploaded successfully");
+  };
+  const handleWatcherChange = (e) => {
+    console.log(e);
+    let array = [];
+    e.forEach((item) => {
+      array.push(item.value);
+    });
+    setCreateTaskInput((prevState) => ({ ...prevState, watcherIds: array }));
   };
   return (
     <div>
@@ -599,299 +641,6 @@ function Managetask({ logoutClick, userDetails }) {
                     {/* </textarea> */}
                   </div>
                   <div className="mt-2">
-                    <label className=" w-100">
-                      {" "}
-                      Category
-                      <select
-                        name="category"
-                        value={createTaskInput.categoryId}
-                        // value={
-                        className=" form-control  createTaskMandatoryLabel"
-                        onChange={handleCategory}
-                      >
-                        <option value={0}>All</option>
-                        {getCategoryList.data &&
-                          getCategoryList.data.getCategories.map(
-                            (item, index) => {
-                              return (
-                                <option key={index} value={item.categoryId}>
-                                  {item.name}
-                                </option>
-                              );
-                            }
-                          )}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <label className=" w-100">
-                      {" "}
-                      Sub Category
-                      <select
-                        value={0}
-                        onChange={handleSubCategoryChange}
-                        className="form-control createTaskMandatoryLabel"
-                      >
-                        {subCategoryResponse.data &&
-                          subCategoryResponse.data.getSubCategoriesByCategoryId.map(
-                            (item, index) => {
-                              return (
-                                <option key={index} value={item.value}>
-                                  {item.name}
-                                </option>
-                              );
-                            }
-                          )}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <label className="w-100">
-                      {" "}
-                      Sub Sub Category
-                      <select
-                        onChange={handleSubSubCategoryChange}
-                        className=" form-control createTaskMandatoryLabel"
-                      >
-                        {/* {getSubSubCategoryList.data &&
-                        getSubSubCategoryList.data ? (
-                          getSubSubCategoryList.data.getSubSubCategoriesBySubCategoryId.map(
-                            (item, index) => {
-                              return (
-                                <option
-                                  key={index}
-                                  value={item.subSubCategoryId}
-                                >
-                                  {item.name}
-                                </option>
-                              );
-                            }
-                          )
-                        ) : ( */}
-                        <option value={"No Data"}>No Data</option>
-                        {/* )} */}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <label className="w-100">
-                      {" "}
-                      Handler
-                      <select
-                        onChange={(e) => {
-                          setCreateTaskInput((prevState) => ({
-                            ...prevState,
-                            currentAssignee: e.target.value,
-                          }));
-                        }}
-                        value={createTaskInput.currentAssignee}
-                        className=" form-control createTaskMandatoryLabel"
-                      >
-                        {userResponse.data &&
-                          userResponse.data.getUsers.map((item, index) => {
-                            return (
-                              <option key={index} value={item.userId}>
-                                {item.emailAddress}
-                              </option>
-                            );
-                          })}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <Select
-                      name="watcher"
-                      className=" box shadow-none border-0 border-bottom w-100 watcher"
-                      required={true}
-                      placeholder="watcher"
-                      options={
-                        userResponse.data &&
-                        userResponse.data.getUsers.map(
-                          ({ userId: value, emailAddress: label }) => ({
-                            label,
-                            value,
-                          })
-                        )
-                      }
-                      defaultValue={watcherDataArray}
-                      // onChange={(selectedOption) => {
-                      //   setInputCriteria({
-                      //     ...inputCriteria,
-                      //     brand_name: selectedOption,
-                      //   });
-                      // }}
-                      isMulti
-                    />
-                  </div>
-                  <div className="show-web mt-3">
-                    <input
-                      type="file"
-                      id="file"
-                      name="file"
-                      style={{ fontSize: "11px" }}
-                      onChange={handleChangeFileData}
-                      multiple
-                    />
-                  </div>
-                  <div className="mt-3">
-                    {existingFileData && (
-                      <>
-                        <label className="marginRight1 mt-2">
-                          {" "}
-                          Attached Files: &nbsp;{" "}
-                        </label>
-                        <Table className="border-0">
-                          <tbody>
-                            {existingFileData &&
-                              existingFileData.getWork.taskLogs[0].taskFiles.map(
-                                (item, index) => {
-                                  return (
-                                    <tr key={index}>
-                                      <td className="border-0 fontSize11">
-                                        {" "}
-                                        {item.fileName}{" "}
-                                      </td>
-
-                                      <td className="border-0 fontSize11 cursor-pointer">
-                                        {" "}
-                                        <a
-                                          className=""
-                                          onClick={() =>
-                                            handleEyeIconClick(item)
-                                          }
-                                        >
-                                          <FaEye />{" "}
-                                        </a>
-                                      </td>
-                                    </tr>
-                                  );
-                                }
-                              )}
-                          </tbody>
-                        </Table>
-                      </>
-                    )}
-                    <div>
-                      {uploadedFile && uploadedFile.length > 0 && (
-                        <div className="">
-                          <div className="uploaded-file">
-                            <label className="marginRight1 ">
-                              {" "}
-                              Current Attachment Files: &nbsp;{" "}
-                            </label>
-                            <Table responsive className="border-0 ">
-                              <tbody>
-                                {uploadedFile.map((file, index) => {
-                                  return (
-                                    <tr key={index}>
-                                      <td className="border-0 fontSize11">
-                                        {" "}
-                                        {file.name}{" "}
-                                      </td>
-                                      <td className="border-0 fontSize11">
-                                        {" "}
-                                        <FaEye
-                                          onClick={() =>
-                                            handleEyeIconClick(file)
-                                          }
-                                        />{" "}
-                                      </td>
-                                      <td className="border-0 fontSize11">
-                                        {" "}
-                                        <FaTrashAlt
-                                          onClick={(e) =>
-                                            deleteSelectedRow(index, e)
-                                          }
-                                        />{" "}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </Table>
-                          </div>
-                          <div className="upload-btn d-flex justify-content-end">
-                            <button
-                              type="button"
-                              onClick={fileUploadAll}
-                              className="form-control btn-clr w-25 "
-                            >
-                              Upload
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-1"></div>
-                <div className="col-xs-12 col-sm-5 col-md-5  ">
-                  {/* <div className="mt-2">
-                  <label> Link to Previous </label>
-                </div> */}
-                  <div className="mt-2">
-                    <div>
-                      <label className="w-100">
-                        {" "}
-                        Status
-                        <select
-                          onChange={handleStatusChange}
-                          className="mt-1 form-control"
-                          value={selectedStatus}
-                        >
-                          {viewTaskValues &&
-                          viewTaskValues.getTask.statusName ? (
-                            statusList.map((item, index) => {
-                              return (
-                                <option key={index} value={item.value}>
-                                  {item.name}
-                                </option>
-                              );
-                            })
-                          ) : (
-                            <option value={"No Data"}>No Data</option>
-                          )}
-                        </select>
-                      </label>
-                    </div>
-                  </div>
-                  {isShowResolution && (
-                    <div className="mt-2">
-                      <label> Resolution </label>
-                      <input
-                        type="text"
-                        value={
-                          viewTaskValues && viewTaskValues.getTask.resolution
-                        }
-                        className="border-0 border-bottom w-100 createTaskMandatoryLabel"
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-2">
-                    <label className="mt-1 w-100">
-                      {" "}
-                      Due Date
-                      {console.log(
-                        viewTaskValues &&
-                          viewTaskValues.getTask.dueDate.formatString
-                      )}
-                      <div className="d-flex form-control cursor-pointer mt-1">
-                        <ReactDatePicker
-                          type="text"
-                          name="fromDate"
-                          className="datePickerField col-lg-12 border-0 "
-                          dateFormat="dd-MM-yyyy"
-                          selected={startDate}
-                          placeholderText="start date"
-                          onChange={(date) => setStartDate(date)}
-                        />
-                        <BsCalendar className="mt-1" />
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="mt-2">
                     <label> Created By </label>
                     <input
                       type="text"
@@ -940,6 +689,308 @@ function Managetask({ logoutClick, userDetails }) {
                       disabled
                     />
                   </div>
+                  <div className="show-web mt-3">
+                    <input
+                      type="file"
+                      id="file"
+                      name="file"
+                      className="fontSize11"
+                      onChange={handleChangeFileData}
+                      multiple
+                    />
+                  </div>
+                  <div className="mt-3">
+                    {existingFileData && (
+                      <>
+                        {existingFileData.getWork.taskLogs[0].taskFiles
+                          .length != 0 && (
+                          <label className="marginRight1 mt-2">
+                            {" "}
+                            Attached Files: &nbsp;{" "}
+                          </label>
+                        )}
+
+                        <Table className="border-0">
+                          <tbody>
+                            {existingFileData &&
+                              existingFileData.getWork.taskLogs[0].taskFiles.map(
+                                (item, index) => {
+                                  return (
+                                    <tr key={index}>
+                                      <td
+                                        style={{ width: "80%" }}
+                                        className="border-0 fontSize11"
+                                      >
+                                        {" "}
+                                        {item.fileName}{" "}
+                                      </td>
+
+                                      <td className="border-0 fontSize11 cursor-pointer">
+                                        {" "}
+                                        {}
+                                        <a
+                                          className=""
+                                          onClick={() =>
+                                            handleEyeIconClick(item)
+                                          }
+                                        >
+                                          <FaEye />{" "}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                              )}
+                          </tbody>
+                        </Table>
+                      </>
+                    )}
+                    <div>
+                      {uploadedFile && uploadedFile.length > 0 && (
+                        <div className="">
+                          <div className="uploaded-file">
+                            <label className="marginRight1 ">
+                              {" "}
+                              Current Attachment Files: &nbsp;{" "}
+                            </label>
+                            <Table responsive className="border-0 ">
+                              <tbody>
+                                {uploadedFile.map((file, index) => {
+                                  return (
+                                    <tr key={index}>
+                                      <td className="border-0 fontSize11">
+                                        {" "}
+                                        {file.name}{" "}
+                                      </td>
+                                      <td className="border-0 fontSize11"> </td>
+                                      <td className="border-0 fontSize11">
+                                        {" "}
+                                        <FaTrashAlt
+                                          onClick={(e) =>
+                                            deleteSelectedRow(index, e)
+                                          }
+                                        />{" "}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </Table>
+                          </div>
+                          <div className="upload-btn d-flex justify-content-end">
+                            <button
+                              type="button"
+                              onClick={fileUpload}
+                              className="form-control btn-clr w-25 "
+                            >
+                              Upload
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-1"></div>
+                <div className="col-xs-12 col-sm-5 col-md-5  ">
+                  <div className="mt-2">
+                    <label className=" w-100">
+                      {" "}
+                      Category
+                      <select
+                        name="category"
+                        value={createTaskInput.categoryId}
+                        className=" form-control  createTaskMandatoryLabel"
+                        onChange={handleCategory}
+                      >
+                        <option value={0}>All</option>
+                        {getCategoryList.data &&
+                          getCategoryList.data.getCategories.map(
+                            (item, index) => {
+                              return (
+                                <option key={index} value={item.categoryId}>
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <label className=" w-100">
+                      {" "}
+                      Sub Category
+                      <select
+                        value={createTaskInput.subCategoryId}
+                        onChange={handleSubCategoryChange}
+                        className="form-control createTaskMandatoryLabel"
+                      >
+                        {subCategoryResponse.data &&
+                        subCategoryResponse.data
+                          .getSubCategoriesByCategoryId ? (
+                          subCategoryResponse.data.getSubCategoriesByCategoryId.map(
+                            (item, index) => {
+                              return (
+                                <option key={index} value={item.subCategoryId}>
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )
+                        ) : (
+                          <option value={"No Data"}>No Data</option>
+                        )}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <label className="w-100">
+                      {" "}
+                      Sub Sub Category
+                      <select
+                        value={createTaskInput.subSubCategoryId}
+                        onChange={handleSubSubCategoryChange}
+                        className=" form-control createTaskMandatoryLabel"
+                      >
+                        {subSubCategoryResponse.data &&
+                        subSubCategoryResponse.data
+                          .getSubSubCategoriesBySubCategoryId ? (
+                          subSubCategoryResponse.data.getSubSubCategoriesBySubCategoryId.map(
+                            (item, index) => {
+                              return (
+                                <option
+                                  key={index}
+                                  value={item.subSubCategoryId}
+                                >
+                                  {item.name}
+                                </option>
+                              );
+                            }
+                          )
+                        ) : (
+                          <option value={"No Data"}>No Data</option>
+                        )}
+                      </select>
+                    </label>
+                  </div>
+                  {/* <div className="mt-2">
+                  <label> Link to Previous </label>
+                </div> */}
+                  <div className="mt-2">
+                    <label className="w-100">
+                      {" "}
+                      Handler
+                      <select
+                        onChange={(e) => {
+                          setCreateTaskInput((prevState) => ({
+                            ...prevState,
+                            currentAssignee: e.target.value,
+                          }));
+                        }}
+                        value={createTaskInput.currentAssignee}
+                        className=" form-control createTaskMandatoryLabel"
+                      >
+                        {userResponse.data &&
+                          userResponse.data.getUsers.map((item, index) => {
+                            return (
+                              <option key={index} value={item.userId}>
+                                {item.emailAddress}
+                              </option>
+                            );
+                          })}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <Select
+                      name="watcher"
+                      className=" box shadow-none border-0 border-bottom w-100 watcher"
+                      required={true}
+                      placeholder="watcher"
+                      options={
+                        userResponse.data &&
+                        userResponse.data.getUsers.map(
+                          ({ userId: value, emailAddress: label }) => ({
+                            label,
+                            value,
+                          })
+                        )
+                      }
+                      defaultValue={watcherDataArray}
+                      onChange={handleWatcherChange}
+                      isMulti
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <div>
+                      <label className="w-100">
+                        {" "}
+                        Status
+                        <select
+                          onChange={handleStatusChange}
+                          className="mt-1 form-control"
+                          value={selectedStatus}
+                        >
+                          {viewTaskValues &&
+                          viewTaskValues.getTask.statusName ? (
+                            statusList.map((item, index) => {
+                              return (
+                                <option key={index} value={item.value}>
+                                  {item.name}
+                                </option>
+                              );
+                            })
+                          ) : (
+                            <option value={"No Data"}>No Data</option>
+                          )}
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                  {isShowResolution && (
+                    <div className="mt-2">
+                      <label> Resolution </label>
+                      <input
+                        type="text"
+                        value={
+                          viewTaskValues && viewTaskValues.getTask.resolution
+                        }
+                        className="border-0 border-bottom w-100 createTaskMandatoryLabel"
+                        onChange={(e) => setResolution(e.target.value)}
+                      />
+                      {isShowResoltionError && (
+                        <p className="text-danger span-error">
+                          {" "}
+                          Resolution is required
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-2">
+                    <label className="mt-1 w-100">
+                      {" "}
+                      Due Date
+                      {console.log(
+                        viewTaskValues &&
+                          viewTaskValues.getTask.dueDate.formatString
+                      )}
+                      <div className="d-flex form-control cursor-pointer mt-1">
+                        <ReactDatePicker
+                          type="text"
+                          name="fromDate"
+                          className="datePickerField col-lg-12 border-0 "
+                          dateFormat="dd-MM-yyyy"
+                          selected={startDate}
+                          placeholderText="start date"
+                          onChange={(date) => setStartDate(date)}
+                        />
+                        <BsCalendar className="mt-1" />
+                      </div>
+                    </label>
+                  </div>
+
                   <div className="mt-2">
                     {/* <Link to="/taskhistory"> */}
                     {/* <p className="d-flex justify-content-end">
@@ -956,7 +1007,17 @@ function Managetask({ logoutClick, userDetails }) {
                 <div className="col-md-2 col-lg-2"></div>
                 <div className="col-md-8 col-lg-8 ">
                   <label> Notes </label>
-                  <textarea className="form-control mt-1 "> </textarea>
+                  <textarea
+                    className="form-control mt-1 "
+                    onChange={(e) => {
+                      setCreateTaskInput((prevState) => ({
+                        ...prevState,
+                        notes: e.target.value,
+                      }));
+                    }}
+                  >
+                    {" "}
+                  </textarea>
                 </div>
                 <div className="col-md-2 col-lg-2"></div>
               </div>

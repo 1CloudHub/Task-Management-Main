@@ -1,17 +1,18 @@
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { Viewer } from "@react-pdf-viewer/core";
-import DocViewer from "react-doc-viewer";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { Modal, Table } from "react-bootstrap";
 import ReactDatePicker from "react-datepicker";
+import DocViewer from "react-doc-viewer";
 import { useForm } from "react-hook-form";
 import { BsCalendar } from "react-icons/bs";
 import { FaEye, FaTimes, FaTrashAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { CreateTaskInput } from "../GraphQL.js/QueryVariable";
-import { useNavigate } from "react-router-dom";
+import Config from "../Services/HeadersConfig";
 import {
   CATEGORY_LIST_QUERY,
   CREATE_TASK_MUTATE,
@@ -22,8 +23,6 @@ import {
 import { ErrorAlert } from "./ErrorAlert";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
-import Config from "../Services/HeadersConfig";
-import AuthService from "../Services/AuthService";
 
 const fileUploadURL = process.env.REACT_APP_FILE_UPLOAD_URL;
 var userId = localStorage.getItem("userId");
@@ -42,7 +41,7 @@ function Newtask({ logoutClick, userDetails }) {
     formState: { errors },
   } = useForm();
   const [file, setFile] = useState();
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
   const [categoryId, setCategoryId] = useState("");
   function dateFormatter(date) {
     const months = [
@@ -78,6 +77,7 @@ function Newtask({ logoutClick, userDetails }) {
     lat: 0,
     lng: 0,
   });
+  const [isShowEyeIcon, setIsShowEyeIcon] = useState(false);
   //Variable Declaration end
 
   useEffect(() => {
@@ -90,7 +90,6 @@ function Newtask({ logoutClick, userDetails }) {
   );
   ErrorAlert(subCategoryResponse);
 
-  console.log(subCategoryResponse);
   const [getSubSubCategory, subsubCategoryResponse] = useLazyQuery(
     GET_SUB_SUB_CATEGORY_BY_CATEGORY_ID_QUERY
   );
@@ -107,16 +106,13 @@ function Newtask({ logoutClick, userDetails }) {
   // Function start
   // to get the lat and long
   const displayLocation = (e) => {
-    console.log(e.coords.latitude);
     const latitude = e.coords.latitude;
     const longitude = e.coords.longitude;
-    console.log(latitude, longitude);
     setPosition({ lat: latitude, lng: longitude });
-    console.log(position);
     setCreateTaskInput((prevState) => ({
       ...prevState,
-      creationLocLatitude: latitude,
-      creationLocLongitude: longitude,
+      lat: latitude.toString(),
+      lon: longitude.toString(),
     }));
   };
 
@@ -190,21 +186,27 @@ function Newtask({ logoutClick, userDetails }) {
   };
 
   var fileIdArray = [];
-
-  const [SubmitTask, submitResponse] = useMutation(CREATE_TASK_MUTATE);
+  let arrCheck = [];
   const fileUploadAll = () => {
+    setIsShowEyeIcon(false);
     uploadedFile.forEach((element, index, array) => {
-      console.log(element);
       const formData = new FormData();
       formData.append("file", element);
       axios
         .post(fileUploadURL, formData, {
-          headers: Config(userId, authToken),
+          headers: {
+            userId: userId,
+            "Authentication-Token": authToken,
+            "Access-Control-Allow-Origin": "*",
+          },
         })
         .then((response) => {
           console.log("file API response : ", response);
           let resp = response.data.fileId;
           fileIdArray.push(resp);
+          arrCheck.push(response);
+
+          showFileSuccessAndEyeIcon(uploadedFile, arrCheck.length);
           setCreateTaskInput((prevState) => ({
             ...prevState,
             fileIds: fileIdArray,
@@ -215,17 +217,72 @@ function Newtask({ logoutClick, userDetails }) {
           toast.error(error);
         });
     });
-    toast.success("File Uploaded successfully");
+  };
+  const showFileSuccessAndEyeIcon = (uploadedFile, arrLength) => {
+    if (uploadedFile.length == arrLength) {
+      toast.success("File Uploaded successfully");
+      setIsShowEyeIcon(false); //change to true to view eye icon
+    }
   };
 
   const onSubmit = (data) => {
     data.preventDefault();
     console.log("submit clicked", data);
-    console.log(createTaskInput);
-
     console.log(Config(userId, authToken));
-    // return false;
-
+    let inputVariables = {};
+    if (createTaskInput.subCategoryId == 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subCategoryId != 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subSubCategoryId == 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    } else if (createTaskInput.subSubCategoryId != 0) {
+      inputVariables = {
+        title: createTaskInput.title,
+        categoryId: parseInt(createTaskInput.categoryId),
+        subCategoryId: parseInt(createTaskInput.subCategoryId),
+        subSubCategoryId: parseInt(createTaskInput.subSubCategoryId),
+        description: createTaskInput.description,
+        fileIds: createTaskInput.fileIds,
+        currentAssignee: parseInt(createTaskInput.currentAssignee),
+        lat: createTaskInput.lat,
+        lon: createTaskInput.lon,
+        dueDate: createTaskInput.dueDate,
+        watcherIds: createTaskInput.watcherIds,
+      };
+    }
     if (
       createTaskInput.title &&
       createTaskInput.categoryId &&
@@ -244,70 +301,31 @@ function Newtask({ logoutClick, userDetails }) {
             localStorage.getItem("jwt-token")
           ),
           body: JSON.stringify({
-            query: `mutation ($input: CreateTaskInput!) {
-                    createTask(input: $input) {
-                      taskId
-                      taskGroupId
-                      title
-                      description
-                      referenceTaskId
-                      createdBy
-                      categoryId
-                      subCategoryId
-                      subSubCategoryId
-                      dueDate {
-                        formatString(format: "dd/MM/yyyy")
-                      }
-                    }
-                  }`,
+            query: CREATE_TASK_MUTATE,
             variables: {
-              input: {
-                title: createTaskInput.title,
-                categoryId: parseInt(createTaskInput.categoryId),
-                subCategoryId: parseInt(createTaskInput.subCategoryId),
-                description: createTaskInput.description,
-                fileIds: createTaskInput.fileIds,
-                currentAssignee: parseInt(createTaskInput.currentAssignee),
-                lat: createTaskInput.creationLocLatitude,
-                lon: createTaskInput.creationLocLongitude,
-                dueDate: createTaskInput.dueDate,
-                watcherIds: createTaskInput.watcherIds,
-              },
+              input: inputVariables,
             },
           }),
         })
-          .then((response) => {
-            response.json();
-          })
+          .then((response) => response.json())
           .then((response) => {
             console.log(response);
-            toast.success("Submitted Successfully");
-            navigate("/MyTask");
-          });
-        // const res = SubmitTask({
-        //   variables: {
-        //     input: {
-        //       title: createTaskInput.title,
-        //       categoryId: parseInt(createTaskInput.categoryId),
-        //       subCategoryId: parseInt(createTaskInput.subCategoryId),
-        //       description: createTaskInput.description,
-        //       fileIds: createTaskInput.fileIds,
-        //       currentAssignee: parseInt(createTaskInput.currentAssignee),
-        //       lat: createTaskInput.creationLocLatitude.toString(),
-        //       lon: createTaskInput.creationLocLongitude.toString(),
-        //       dueDate: createTaskInput.dueDate,
-        //       watcherIds: createTaskInput.watcherIds,
-        //     },
-        //   },
-        // });
-        console.log(submitResponse.error);
 
-        if (submitResponse.data) {
-          toast.success("submitted successfully");
-          navigate("/MyTask");
-        } else if (submitResponse.error) {
-          toast.error("Error !");
-        }
+            if (response.data != null) {
+              toast.success("Submitted Successfully");
+              // localStorage.setItem("defaultActiveKey", "Creator");
+              navigate("/MyTask");
+            } else {
+              let myObj = response.errors[0].extensions;
+              if ("assigneeUserId" in myObj) {
+                toast.warn(response.errors[0].extensions.assigneeUserId);
+              } else if ("NewState" in myObj)
+                toast.warn(response.errors[0].extensions.NewState);
+              else if ("userId" in myObj) {
+                toast.error(response.errors[0].extensions.userId);
+              }
+            }
+          });
       } else {
         toast.error("please upload selected files");
       }
@@ -335,6 +353,13 @@ function Newtask({ logoutClick, userDetails }) {
 
     return [year, month, day].join("-");
   };
+  useEffect(() => {
+    let todayDate = formatDate(new Date());
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      dueDate: todayDate,
+    }));
+  }, []);
 
   const onChangeDate = (date) => {
     console.log(date);
@@ -514,7 +539,7 @@ function Newtask({ logoutClick, userDetails }) {
                     type="file"
                     id="file"
                     name="file"
-                    style={{ fontSize: "11px" }}
+                    className="fontSize11"
                     onChange={handleChangeFileData}
                     multiple
                   />
@@ -534,17 +559,32 @@ function Newtask({ logoutClick, userDetails }) {
                               {uploadedFile.map((file, index) => {
                                 return (
                                   <tr key={index}>
-                                    <td className="border-0 fontSize11">
+                                    <td
+                                      style={{ width: "70%" }}
+                                      className="border-0 fontSize11"
+                                    >
                                       {" "}
                                       {file.name}{" "}
                                     </td>
-                                    <td className="border-0 fontSize11">
+                                    <td
+                                      style={{ width: "10%" }}
+                                      className="border-0 fontSize11"
+                                    >
                                       {" "}
-                                      <FaEye
-                                        onClick={() => handleEyeIconClick(file)}
-                                      />{" "}
+                                      {isShowEyeIcon && (
+                                        <a className="cursor-pointer">
+                                          <FaEye
+                                            onClick={() =>
+                                              handleEyeIconClick(file)
+                                            }
+                                          />
+                                        </a>
+                                      )}
                                     </td>
-                                    <td className="border-0 fontSize11">
+                                    <td
+                                      style={{ width: "5%" }}
+                                      className="border-0 fontSize11"
+                                    >
                                       {" "}
                                       <FaTrashAlt
                                         onClick={(e) =>
@@ -562,7 +602,7 @@ function Newtask({ logoutClick, userDetails }) {
                           <button
                             type="button"
                             onClick={fileUploadAll}
-                            className="form-control btn-clr w-25 "
+                            className="form-control btn-clr w-25 shadow"
                           >
                             Upload
                           </button>
@@ -632,6 +672,7 @@ function Newtask({ logoutClick, userDetails }) {
                       className="datePickerField col-lg-12 border-0  w-100 border-bottom fontSize11"
                       dateFormat="dd-MM-yyyy"
                       selected={startDate}
+                      minDate={startDate}
                       autoComplete="off"
                       // onChange={(date) => setStartDate(date)}
                       // {...register("dueDate", { required: true })}
@@ -682,9 +723,9 @@ function Newtask({ logoutClick, userDetails }) {
             ) : (
               ""
             )}
-            {/* <img src={popUpImage} />
-            <Viewer fileUrl={openPdfFile} /> */}
-            <DocViewer documents={openPdfFile} />
+            <img src={popUpImage} />
+            <Viewer fileUrl={openPdfFile} />
+            {/* <DocViewer documents={openPdfFile} /> */}
           </Modal.Body>
         </Modal>
         <Footer />

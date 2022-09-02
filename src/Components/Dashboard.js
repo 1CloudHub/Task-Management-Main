@@ -17,9 +17,9 @@ import Footer from "./Footer";
 import Graphs from "./Graphs/Graphs";
 import NavBar from "./Nav-bar";
 
-const client = Client;
-
 function Dashboard({ logoutClick, userDetails }) {
+  const client = Client;
+
   const userId = localStorage.getItem("userId");
 
   const [startDate, setStartDate] = useState();
@@ -412,6 +412,18 @@ function Dashboard({ logoutClick, userDetails }) {
     return;
   };
 
+  const [defaultActiveKey, setDefaultActiveKey] = useState("handle");
+
+  // useEffect(() => {
+  //   // localStorage.removeItem("defaultActiveKey");
+  //   const defaultType = localStorage.getItem("defaultActiveKey");
+  //   console.log("defType >> ", defaultType);
+  //   if (defaultType === "Creator") {
+  //     console.log("inisde if");
+  //     setDefaultActiveKey("create");
+  //   }
+  // }, []);
+
   return (
     <div>
       <NavBar logoutClick={logoutClick} userDetails={userDetails} />
@@ -419,7 +431,6 @@ function Dashboard({ logoutClick, userDetails }) {
       <SideNavDrawer /> */}
       <br />
       {/* <br /> */}
-
       <div className="main-container">
         <div className="container-fluid">
           <Tabs
@@ -529,6 +540,7 @@ function Dashboard({ logoutClick, userDetails }) {
                 handleEnd={handleEnd}
                 tabType={"creator"}
                 defSortType={defDescSortCreator}
+                handleStatusChange={handleStatusChange}
               />
               {showLoaderCreator && (
                 <>

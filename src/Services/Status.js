@@ -2,13 +2,9 @@ export const Status = [
   {
     name: "Assigned",
     value: "ASSIGNED",
-    id: 0,
+    id: 1,
   },
-  // {
-  //   name: "Initiated",
-  //   value: "INITIATED",
-  //   id: 1,
-  // },
+
   {
     name: "In Progress",
     value: "IN_PROGRESS",

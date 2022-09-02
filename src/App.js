@@ -19,7 +19,6 @@ import SearchList from "./Components/SearchList";
 import Taskhistory from "./Components/Taskhistory";
 import { Client, Config } from "./Services/HeadersConfig";
 import { GETUSERIDBBYEMAIL_QUERY } from "./Services/Query";
-
 function App() {
   const navigate = useNavigate();
   const [currentURL, setCurrentUrl] = useState("");
