@@ -150,7 +150,7 @@ function NavBar({ logoutClick, handleChangeFileData }) {
               {navList.map((item, index) => {
                 return (
                   <>
-                    <Nav.Link>
+                    <Nav.Link key={index}>
                       <Link to={item.url}>
                         {" "}
                         {item.itemImage}

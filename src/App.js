@@ -20,6 +20,7 @@ import Taskhistory from "./Components/Taskhistory";
 import { Client, Config } from "./Services/HeadersConfig";
 import { GETUSERIDBBYEMAIL_QUERY } from "./Services/Query";
 function App() {
+  console.log(process.env);
   const navigate = useNavigate();
   const [currentURL, setCurrentUrl] = useState("");
   const authenticateURL = process.env.REACT_APP_AUTHENTICATE_URL;

@@ -117,6 +117,7 @@ export const GET_FILES_QUERY = gql`
         fromName
         to
         toName
+        statusName
         start_date {
           formatString(format: "dd-MMM-yyyy")
         }
@@ -127,6 +128,8 @@ export const GET_FILES_QUERY = gql`
           fileName
           uuid
         }
+        DaysSincePrevious
+        DaysSinceInception
       }
       watchers {
         watcherId

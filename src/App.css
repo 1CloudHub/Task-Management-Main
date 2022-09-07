@@ -633,3 +633,8 @@ Select:focus {
     left: 20%;
   }
 }
+
+.vl {
+  border-left: 2px solid grey;
+  height: 100px;
+}

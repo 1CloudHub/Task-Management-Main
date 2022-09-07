@@ -1,4 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
+import DocViewer from "react-doc-viewer";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Modal, Table } from "react-bootstrap";
@@ -29,6 +30,7 @@ import {
 import { Status } from "../Services/Status";
 import Footer from "./Footer";
 import NavBar from "./Nav-bar";
+import Taskhistory from "./Taskhistory";
 
 function Managetask({ logoutClick, userDetails }) {
   const [fileIdsArrays, setFileIdssArray] = useState([]);
@@ -261,11 +263,11 @@ function Managetask({ logoutClick, userDetails }) {
     console.log("due Date :: ", due_Date);
     setStartDate(due_Date);
   }, [viewTaskValues]);
-  const docs = [
+  const [docs, setDocs] = useState([
     {
-      uri: "https://i.picsum.photos/id/0/5616/3744.jpg?hmac=3GAAioiQziMGEtLbfrdbcoenXoWAW-zlyEAMkfEdBzQ",
-    }, // Local File
-  ];
+      uri: "http://3.110.3.72/events/download/fileId/eaf669f6-e7ae-45aa-a19a-54bf6fa490a0/taskId/186/",
+    },
+  ]);
 
   const [statusList, setStatusList] = useState(Status);
   const [selectedStatus, setSelectedStatus] = useState(statusName);
@@ -508,6 +510,10 @@ function Managetask({ logoutClick, userDetails }) {
   const [selectedFileToView, setSelectedFileToView] = useState();
   const [file, setFile] = useState([]);
   const [deleteSelectedFile, setDeleteSelectedFile] = useState([]);
+  const handleViewHistoryButtonClick = () => {
+    setShowTaskHistoryData(!showTaskHistoryData);
+  };
+  const [showTaskHistoryData, setShowTaskHistoryData] = useState(false);
 
   const handleEyeIconClick = (selectedfile) => {
     console.log(selectedfile);
@@ -589,6 +595,30 @@ function Managetask({ logoutClick, userDetails }) {
     });
     setCreateTaskInput((prevState) => ({ ...prevState, watcherIds: array }));
   };
+  const headers = Config(userId, authToken);
+  const onChangeDate = (date) => {
+    console.log(date);
+    let formattedDate = formatDate(date);
+    console.log(formattedDate);
+
+    setStartDate(date);
+    setCreateTaskInput((prevState) => ({
+      ...prevState,
+      dueDate: formattedDate,
+    }));
+  };
+  const formatDate = (date) => {
+    var d = new Date(date),
+      month = "" + (d.getMonth() + 1),
+      day = "" + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
+
+    return [year, month, day].join("-");
+  };
+  console.log(headers);
   return (
     <div>
       <NavBar
@@ -984,7 +1014,7 @@ function Managetask({ logoutClick, userDetails }) {
                           dateFormat="dd-MM-yyyy"
                           selected={startDate}
                           placeholderText="start date"
-                          onChange={(date) => setStartDate(date)}
+                          onChange={onChangeDate}
                         />
                         <BsCalendar className="mt-1" />
                       </div>
@@ -992,14 +1022,19 @@ function Managetask({ logoutClick, userDetails }) {
                   </div>
 
                   <div className="mt-2">
-                    {/* <Link to="/taskhistory"> */}
-                    {/* <p className="d-flex justify-content-end">
-                    <label className="cursor-pointer">
-                      <a className=" underline">
-                        click here to view history ...
-                      </a>{" "}
-                    </label>
-                  </p> */}
+                    <div className=" view History">
+                      <div className="form-control border-0 float-left">
+                        <a
+                          className="text-underlined fontSize11 cursor-pointer"
+                          data-toggle="toggle"
+                          aria-pressed="false"
+                          autocomplete="off"
+                          onClick={handleViewHistoryButtonClick}
+                        >
+                          <u>click here to view Task History</u>
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1037,6 +1072,22 @@ function Managetask({ logoutClick, userDetails }) {
                 <div className="col"></div>
               </div>
             </form>
+            <div className="">
+              {showTaskHistoryData && (
+                <>
+                  <div className="col-md-12 col-lg-12 fontSize11">
+                    {/* {viewTaskHistoryData.getWork.} */}
+
+                    {existingFileData &&
+                      existingFileData.getWork.taskLogs.map((item, index) => {
+                        return <Taskhistory item={item} index={index} />;
+                      })}
+                  </div>
+                  <br />
+                  <br />
+                </>
+              )}
+            </div>
           </>
         )}
         <br />
@@ -1049,6 +1100,14 @@ function Managetask({ logoutClick, userDetails }) {
           <FaTimes onClick={handleCloseClick} />{" "}
         </Modal.Header>
         <Modal.Body>
+          <DocViewer
+            documents={[
+              {
+                uri: "https://picsum.photos/200/300",
+              },
+            ]}
+          />
+          ;
           {/* {fileType == "application/pdf" ? (
             <Viewer fileUrl={openPdfFile} />
           ) : fileType == "image/png" ? (

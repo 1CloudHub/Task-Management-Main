@@ -237,19 +237,19 @@ function Dashboard({ logoutClick, userDetails }) {
   };
 
   const clientCallForWatcherResponse = () => {
-    client
-      .query({
-        query: GET_TASK_FOR_WATCHERS_QUERY,
-        variables: {
-          userId: 1,
-        },
-      })
-      .then((response) => {
-        console.log("watcher respose ", response);
-        setShowLoaderWatcher(false);
-        setWatcherResponse(response);
-      })
-      .catch((err) => console.error(err));
+    // client
+    //   .query({
+    //     query: GET_TASK_FOR_WATCHERS_QUERY,
+    //     variables: {
+    //       userId: 1,
+    //     },
+    //   })
+    //   .then((response) => {
+    //     console.log("watcher respose ", response);
+    //     setShowLoaderWatcher(false);
+    //     setWatcherResponse(response);
+    //   })
+    //   .catch((err) => console.error(err));
   };
 
   useEffect(() => {
@@ -456,8 +456,8 @@ function Dashboard({ logoutClick, userDetails }) {
               />
               {showLoaderHandler && (
                 <>
-                  <div class="d-flex justify-content-center align-items-center loader">
-                    <div class="spinner-border" role="status"></div>
+                  <div className="d-flex justify-content-center align-items-center loader">
+                    <div className="spinner-border" role="status"></div>
                   </div>
                 </>
               )}
@@ -500,8 +500,8 @@ function Dashboard({ logoutClick, userDetails }) {
                   />
                   {showLoaderWatcher && (
                     <>
-                      <div class="d-flex justify-content-center align-items-center loader">
-                        <div class="spinner-border" role="status"></div>
+                      <div className="d-flex justify-content-center align-items-center loader">
+                        <div className="spinner-border" role="status"></div>
                       </div>
                     </>
                   )}
@@ -544,8 +544,8 @@ function Dashboard({ logoutClick, userDetails }) {
               />
               {showLoaderCreator && (
                 <>
-                  <div class="d-flex justify-content-center align-items-center loader">
-                    <div class="spinner-border" role="status"></div>
+                  <div className="d-flex justify-content-center align-items-center loader">
+                    <div className="spinner-border" role="status"></div>
                   </div>
                 </>
               )}

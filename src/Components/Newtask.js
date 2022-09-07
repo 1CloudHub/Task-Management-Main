@@ -189,6 +189,7 @@ function Newtask({ logoutClick, userDetails }) {
   let arrCheck = [];
   const fileUploadAll = () => {
     setIsShowEyeIcon(false);
+    console.log("authToken", authToken);
     uploadedFile.forEach((element, index, array) => {
       const formData = new FormData();
       formData.append("file", element);

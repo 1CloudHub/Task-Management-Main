@@ -24,7 +24,7 @@ function CardList({ response }) {
                 {/* {index} */}
                 <div className="col-lg-6">
                   <Link to={`/ManageTask/` + item.taskId}>
-                    <Cards item={item} />
+                    <Cards key={index} item={item} />
                   </Link>
                 </div>
               </>
@@ -35,7 +35,7 @@ function CardList({ response }) {
               <>
                 <div className="col-lg-6">
                   <Link to={`/ManageTask/` + item.taskId}>
-                    <Cards item={item} />
+                    <Cards key={index} item={item} />
                   </Link>
                 </div>
               </>
